@@ -3,84 +3,183 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-3xl px-6 py-14">
-        <div className="flex flex-col items-center text-center gap-6">
-          <Image
-            src="/brand/kaishio-logo.png"
-            alt="Kaishio"
-            width={220}
-            height={220}
-            priority
-          />
+    <main className="min-h-screen bg-[#070A12] text-white overflow-hidden">
+      {/* Background effects */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="absolute top-40 -left-24 h-[420px] w-[420px] rounded-full bg-emerald-500/15 blur-3xl" />
+        <div className="absolute -bottom-24 right-0 h-[520px] w-[520px] rounded-full bg-amber-400/15 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06)_0,rgba(255,255,255,0)_55%)]" />
+      </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-            Kaishio
-          </h1>
+      {/* Header */}
+      <header className="relative z-10 mx-auto max-w-6xl px-6 pt-8">
+        <nav className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-10">
+              <Image
+                src="/brand/kaishio-logo.png"
+                alt="Kaishio"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="font-semibold tracking-wide">Kaishio</span>
+          </div>
 
-          <p className="text-slate-700 text-lg">
-            Seu consultor independente para comparar opções de envio de dinheiro ao Brasil.
-          </p>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/how-it-works"
+              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
+            >
+              Como funciona
+            </Link>
+            <Link
+              href="/compare"
+              className="inline-flex rounded-full bg-white text-black px-4 py-2 text-sm font-semibold hover:bg-white/90 transition"
+            >
+              Começar
+            </Link>
+          </div>
+        </nav>
+      </header>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-left w-full shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">
-              O que é o Kaishio?
-            </h2>
+      {/* Hero */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+          {/* Left */}
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              Comparador independente • EUA → Brasil
+            </div>
 
-            <p className="mt-2 text-slate-700">
-              O Kaishio é uma ferramenta de pesquisa e comparação. Nós analisamos diferentes
-              provedores (ex.: Wise, Remitly, Xoom, PayPal, Western Union, MoneyGram) para
-              ajudar você a encontrar a opção com melhor custo-benefício — considerando taxas,
-              câmbio (spread) e velocidade.
+            <h1 className="mt-5 text-4xl sm:text-5xl font-semibold tracking-tight">
+              Compare o{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-blue-300 to-amber-200">
+                custo real
+              </span>{" "}
+              antes de enviar dinheiro ao Brasil.
+            </h1>
+
+            <p className="mt-5 text-white/75 text-lg leading-relaxed max-w-xl">
+              Kaishio é um <span className="font-semibold text-white">assistente de pesquisa</span>.
+              Nós comparamos provedores (taxas + câmbio/spread + velocidade) para você escolher com clareza —
+              e economizar.
             </p>
 
-            <h3 className="mt-5 text-base font-semibold text-slate-900">
-              Importante (Transparência e Segurança)
-            </h3>
-
-            <ul className="mt-2 list-disc pl-5 text-slate-700 space-y-2">
-              <li>
-                <span className="font-semibold">Não somos uma plataforma de envio.</span> O Kaishio
-                não transfere, não recebe e não guarda dinheiro.
-              </li>
-              <li>
-                <span className="font-semibold">As transações acontecem fora do Kaishio</span>, diretamente
-                no site/app do provedor escolhido por você.
-              </li>
-              <li>
-                Mostramos <span className="font-semibold">estimativas</span> para facilitar sua decisão.
-                O valor final é confirmado no checkout do provedor.
-              </li>
-              <li>
-                Podemos usar <span className="font-semibold">links de afiliados</span>. Isso não muda nossa
-                missão: ajudar você a economizar com comparações independentes e claras.
-              </li>
-            </ul>
-
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/compare"
-                className="inline-flex justify-center rounded-lg bg-slate-900 px-5 py-3 text-white font-medium hover:bg-slate-800"
+                className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
               >
-                Começar a comparar
+                Comparar agora
               </Link>
 
               <Link
                 href="/how-it-works"
-                className="inline-flex justify-center rounded-lg border border-slate-300 px-5 py-3 text-slate-800 font-medium hover:bg-slate-100"
+                className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10 transition"
               >
-                Como funciona
+                Entender em 30 segundos
               </Link>
+            </div>
+
+            {/* Trust row */}
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <TrustCard title="Sem pegadinhas" body="Mostramos estimativas e explicamos o spread." />
+              <TrustCard title="Sem mover dinheiro" body="Você finaliza no app/site do provedor." />
+              <TrustCard title="Independente" body="Comparação clara (com links afiliados quando houver)." />
             </div>
           </div>
 
-          <p className="text-xs text-slate-500 max-w-xl">
-            Aviso: O Kaishio é apenas informativo e não oferece aconselhamento financeiro, legal ou fiscal.
-            Verifique sempre as condições do provedor e suas obrigações locais.
-          </p>
+          {/* Right */}
+          <div className="relative">
+            <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
+              <div className="flex items-center gap-4">
+                <div className="relative h-16 w-16">
+                  <Image
+                    src="/brand/kaishio-logo.png"
+                    alt="Kaishio"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold">Dinheiro sem fronteiras</div>
+                  <div className="text-sm text-white/60">
+                    Compare • escolha • envie com confiança
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-3">
+                <MiniStep
+                  n="1"
+                  title="Digite o valor em USD"
+                  body="Você informa quanto quer enviar."
+                />
+                <MiniStep
+                  n="2"
+                  title="Veja custo total e BRL estimado"
+                  body="Taxas + câmbio (spread) + velocidade."
+                />
+                <MiniStep
+                  n="3"
+                  title="Clique e finalize no provedor"
+                  body="A transação acontece fora do Kaishio."
+                />
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/15 bg-black/30 p-4">
+                <div className="text-sm font-semibold">Provedores (fase inicial)</div>
+                <div className="mt-2 text-sm text-white/70">
+                  Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs text-white/50 leading-relaxed">
+              Aviso: Kaishio é informativo e não oferece aconselhamento financeiro, legal ou fiscal.
+              Valores finais podem variar por promoções, método e horário (ex.: fim de semana).
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer disclaimer strip */}
+      <footer className="relative z-10 border-t border-white/10 bg-black/20">
+        <div className="mx-auto max-w-6xl px-6 py-5 text-xs text-white/60 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <span>
+            Kaishio não envia, não recebe e não armazena dinheiro. Transações ocorrem no provedor escolhido.
+          </span>
+          <span>© {new Date().getFullYear()} Kaishio</span>
+        </div>
+      </footer>
     </main>
   );
 }
 
+function TrustCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-white/12 bg-white/5 p-4">
+      <div className="text-sm font-semibold">{title}</div>
+      <div className="mt-1 text-sm text-white/70">{body}</div>
+    </div>
+  );
+}
+
+function MiniStep({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="flex gap-3 rounded-2xl border border-white/12 bg-white/5 p-4">
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black font-bold">
+        {n}
+      </div>
+      <div>
+        <div className="text-sm font-semibold">{title}</div>
+        <div className="text-sm text-white/70">{body}</div>
+      </div>
+    </div>
+  );
+}
