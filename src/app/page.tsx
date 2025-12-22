@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
@@ -12,60 +11,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06)_0,rgba(255,255,255,0)_55%)]" />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 mx-auto max-w-6xl px-6 pt-8">
-        <nav className="flex items-center justify-between">
-          {/* Brand lockup */}
-          <Link href="/" className="flex items-center gap-4 group">
-            {/* Logo badge: forces visibility */}
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white ring-1 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden">
-              <Image
-                src="/brand/kaishio-logo.png"
-                alt="Kaishio"
-                width={120}
-                height={120}
-                className="object-cover scale-[1.55]"
-                priority
-              />
-            </div>
-
-            {/* Bigger wordmark + tagline */}
-            <div className="leading-tight">
-              <div className="text-2xl sm:text-3xl font-semibold tracking-wide group-hover:opacity-95">
-                Kaishio
-              </div>
-              <div className="text-sm sm:text-base text-white/70 -mt-0.5">
-                Dinheiro sem fronteiras
-              </div>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/education"
-              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
-            >
-              Educação
-            </Link>
-
-            <Link
-              href="/how-it-works"
-              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
-            >
-              Como funciona
-            </Link>
-
-            <Link
-              href="/compare"
-              className="inline-flex rounded-full bg-white text-black px-4 py-2 text-sm font-semibold hover:bg-white/90 transition"
-            >
-              Começar
-            </Link>
-          </div>
-        </nav>
-      </header>
-
-      {/* Hero */}
+      {/* Hero (NO PAGE HEADER — layout owns header globally) */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           {/* Left */}
@@ -117,15 +63,13 @@ export default function HomePage() {
           <div className="relative">
             <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
               <div className="flex items-center gap-4">
-                {/* Logo badge in card */}
+                {/* Logo badge in card — keep it here IF you want, but it’s not the header */}
                 <div className="h-20 w-20 rounded-full bg-white ring-1 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden">
-                  <Image
+                  {/* NOTE: use <img> to avoid next/image config headaches in app router */}
+                  <img
                     src="/brand/kaishio-logo.png"
                     alt="Kaishio"
-                    width={120}
-                    height={120}
-                    className="object-cover scale-[1.55]"
-                    priority
+                    className="h-[120px] w-[120px] object-cover scale-[1.55]"
                   />
                 </div>
 
