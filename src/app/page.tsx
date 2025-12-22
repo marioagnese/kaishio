@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-[#070A12] text-white overflow-hidden">
+    <main className="min-h-screen bg-[#070A12] text-white overflow-hidden relative">
       {/* Background effects */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
@@ -15,8 +15,10 @@ export default function HomePage() {
       {/* Header */}
       <header className="relative z-10 mx-auto max-w-6xl px-6 pt-8">
         <nav className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10">
+          {/* Brand lockup */}
+          <Link href="/" className="flex items-center gap-4 group">
+            {/* Bigger logo */}
+            <div className="relative h-14 w-14 sm:h-16 sm:w-16">
               <Image
                 src="/brand/kaishio-logo.png"
                 alt="Kaishio"
@@ -25,16 +27,33 @@ export default function HomePage() {
                 priority
               />
             </div>
-            <span className="font-semibold tracking-wide">Kaishio</span>
-          </div>
 
-          <div className="flex items-center gap-3">
+            {/* Bigger wordmark + tagline */}
+            <div className="leading-tight">
+              <div className="text-xl sm:text-2xl font-semibold tracking-wide group-hover:opacity-95">
+                Kaishio
+              </div>
+              <div className="text-xs sm:text-sm text-white/65 -mt-0.5">
+                Dinheiro sem fronteiras
+              </div>
+            </div>
+          </Link>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/education"
+              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
+            >
+              Educação
+            </Link>
+
             <Link
               href="/how-it-works"
               className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
             >
               Como funciona
             </Link>
+
             <Link
               href="/compare"
               className="inline-flex rounded-full bg-white text-black px-4 py-2 text-sm font-semibold hover:bg-white/90 transition"
@@ -64,9 +83,9 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-5 text-white/75 text-lg leading-relaxed max-w-xl">
-              Kaishio é um <span className="font-semibold text-white">assistente de pesquisa</span>.
-              Nós comparamos provedores (taxas + câmbio/spread + velocidade) para você escolher com clareza —
-              e economizar.
+              Kaishio é um{" "}
+              <span className="font-semibold text-white">assistente de pesquisa</span>. Nós comparamos
+              provedores (taxas + câmbio/spread + velocidade) para você escolher com clareza — e economizar.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
@@ -97,7 +116,8 @@ export default function HomePage() {
           <div className="relative">
             <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
               <div className="flex items-center gap-4">
-                <div className="relative h-16 w-16">
+                {/* Bigger logo on the card too */}
+                <div className="relative h-20 w-20">
                   <Image
                     src="/brand/kaishio-logo.png"
                     alt="Kaishio"
@@ -108,18 +128,12 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="text-lg font-semibold">Dinheiro sem fronteiras</div>
-                  <div className="text-sm text-white/60">
-                    Compare • escolha • envie com confiança
-                  </div>
+                  <div className="text-sm text-white/60">Compare • escolha • envie com confiança</div>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-3">
-                <MiniStep
-                  n="1"
-                  title="Digite o valor em USD"
-                  body="Você informa quanto quer enviar."
-                />
+                <MiniStep n="1" title="Digite o valor em USD" body="Você informa quanto quer enviar." />
                 <MiniStep
                   n="2"
                   title="Veja custo total e BRL estimado"
@@ -138,17 +152,32 @@ export default function HomePage() {
                   Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram
                 </div>
               </div>
+
+              <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/education"
+                  className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10 transition"
+                >
+                  Aprender antes de enviar
+                </Link>
+                <Link
+                  href="/compare"
+                  className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
+                >
+                  Ir para o comparador
+                </Link>
+              </div>
             </div>
 
             <p className="mt-4 text-xs text-white/50 leading-relaxed">
-              Aviso: Kaishio é informativo e não oferece aconselhamento financeiro, legal ou fiscal.
-              Valores finais podem variar por promoções, método e horário (ex.: fim de semana).
+              Aviso: Kaishio é informativo e não oferece aconselhamento financeiro, legal ou fiscal. Valores
+              finais podem variar por promoções, método e horário (ex.: fim de semana).
             </p>
           </div>
         </div>
       </section>
 
-      {/* Footer disclaimer strip */}
+      {/* Footer */}
       <footer className="relative z-10 border-t border-white/10 bg-black/20">
         <div className="mx-auto max-w-6xl px-6 py-5 text-xs text-white/60 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <span>
