@@ -1,29 +1,61 @@
 import Link from "next/link";
+import { SiteHeader } from "@/components/site/SiteHeader";
 
-export default function HowItWorks() {
+export default function HowItWorksPage() {
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-3xl px-6 py-14">
-        <h1 className="text-2xl font-semibold text-slate-900">Como funciona</h1>
+    <main className="min-h-screen text-white bg-gradient-to-b from-[#050611] via-[#070A12] to-[#050611]">
+      <SiteHeader />
 
-        <ol className="mt-4 list-decimal pl-5 text-slate-700 space-y-2">
-          <li>Você informa o valor em USD que deseja enviar.</li>
-          <li>O Kaishio estima taxas e câmbio (spread) por provedor.</li>
-          <li>Você escolhe a melhor opção e clica para ir ao provedor.</li>
-          <li>A transação é concluída diretamente no site/app do provedor.</li>
-        </ol>
-
-        <p className="mt-6 text-sm text-slate-600">
-          Observação: as taxas e o câmbio variam por método, promoções e horário (ex.: fim de semana).
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <h1 className="text-3xl sm:text-4xl font-semibold">Como funciona</h1>
+        <p className="mt-3 text-white/75 text-lg">
+          Simples: você compara no Kaishio e finaliza no provedor.
         </p>
 
-        <Link
-          href="/"
-          className="mt-6 inline-flex rounded-lg border border-slate-300 px-4 py-2 text-slate-800 hover:bg-slate-100"
-        >
-          Voltar
-        </Link>
+        <div className="mt-10 grid gap-4">
+          <Step n="1" title="Digite o valor em USD" body="Você informa quanto quer enviar e seu objetivo." />
+          <Step n="2" title="Compare custo real" body="Taxas + spread + prazo. Sem confusão." />
+          <Step n="3" title="Finalize com segurança" body="Você clica e conclui no site/app do provedor." />
+        </div>
+
+        <div className="mt-10 flex flex-col sm:flex-row gap-3">
+          <Link
+            href="/compare"
+            className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
+          >
+            Ir para o comparador
+          </Link>
+          <Link
+            href="/education"
+            className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold hover:bg-white/10 transition"
+          >
+            Ver educação (mini-lições)
+          </Link>
+        </div>
+
+        <div className="mt-10 rounded-2xl border border-white/12 bg-white/5 p-6">
+          <h2 className="text-lg font-semibold">Transparência</h2>
+          <ul className="mt-3 list-disc pl-5 space-y-2 text-white/75">
+            <li>Kaishio não envia, não recebe e não armazena dinheiro.</li>
+            <li>Mostramos estimativas; o valor final é confirmado pelo provedor.</li>
+            <li>Podemos usar links afiliados (quando houver), mas mostramos sempre o que importa: custo real.</li>
+          </ul>
+        </div>
       </div>
     </main>
+  );
+}
+
+function Step({ n, title, body }: { n: string; title: string; body: string }) {
+  return (
+    <div className="flex gap-4 rounded-2xl border border-white/12 bg-white/5 p-5">
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black font-bold">
+        {n}
+      </div>
+      <div>
+        <div className="text-base font-semibold">{title}</div>
+        <div className="mt-1 text-white/70">{body}</div>
+      </div>
+    </div>
   );
 }
