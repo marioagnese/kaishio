@@ -17,23 +17,24 @@ export default function HomePage() {
         <nav className="flex items-center justify-between">
           {/* Brand lockup */}
           <Link href="/" className="flex items-center gap-4 group">
-            {/* Bigger logo */}
-            <div className="relative h-14 w-14 sm:h-16 sm:w-16">
+            {/* Logo badge: forces visibility */}
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white ring-1 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden">
               <Image
                 src="/brand/kaishio-logo.png"
                 alt="Kaishio"
-                fill
-                className="object-contain"
+                width={120}
+                height={120}
+                className="object-cover scale-[1.55]"
                 priority
               />
             </div>
 
             {/* Bigger wordmark + tagline */}
             <div className="leading-tight">
-              <div className="text-xl sm:text-2xl font-semibold tracking-wide group-hover:opacity-95">
+              <div className="text-2xl sm:text-3xl font-semibold tracking-wide group-hover:opacity-95">
                 Kaishio
               </div>
-              <div className="text-xs sm:text-sm text-white/65 -mt-0.5">
+              <div className="text-sm sm:text-base text-white/70 -mt-0.5">
                 Dinheiro sem fronteiras
               </div>
             </div>
@@ -116,16 +117,18 @@ export default function HomePage() {
           <div className="relative">
             <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
               <div className="flex items-center gap-4">
-                {/* Bigger logo on the card too */}
-                <div className="relative h-20 w-20">
+                {/* Logo badge in card */}
+                <div className="h-20 w-20 rounded-full bg-white ring-1 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden">
                   <Image
                     src="/brand/kaishio-logo.png"
                     alt="Kaishio"
-                    fill
-                    className="object-contain"
+                    width={120}
+                    height={120}
+                    className="object-cover scale-[1.55]"
                     priority
                   />
                 </div>
+
                 <div>
                   <div className="text-lg font-semibold">Dinheiro sem fronteiras</div>
                   <div className="text-sm text-white/60">Compare • escolha • envie com confiança</div>
