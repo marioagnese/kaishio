@@ -5,11 +5,16 @@ import { Quote, formatBRL, formatUSD } from "@/lib/providers";
 export default function ProviderCard({
   quote,
   rank,
+  bestSavingsBRL,
+  bestReason,
 }: {
   quote: Quote;
   rank: number;
+  bestSavingsBRL?: number; // only shown on rank #1
+  bestReason?: string;     // only shown on rank #1
 }) {
   const { provider } = quote;
+
   const rec = recommendation(rank);
 
   return (
@@ -23,6 +28,7 @@ export default function ProviderCard({
         provider.color.border,
         provider.color.bg,
         provider.color.glow,
+        rank === 1 ? "ring-2 ring-emerald-400/30" : "",
       ].join(" ")}
     >
       <div className="flex items-start justify-between gap-4">
@@ -31,7 +37,7 @@ export default function ProviderCard({
           <div className="flex items-center gap-2">
             <div
               className={[
-                "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+                "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold border",
                 rec.cls,
               ].join(" ")}
             >
@@ -42,6 +48,22 @@ export default function ProviderCard({
 
           <div className="text-xl font-semibold mt-2">{provider.name}</div>
           <div className="text-sm text-white/70 mt-1">{provider.tagline}</div>
+
+          {/* BEST-only: savings + reason */}
+          {rank === 1 && (typeof bestSavingsBRL === "number" || bestReason) && (
+            <div className="mt-3 space-y-1">
+              {typeof bestSavingsBRL === "number" && bestSavingsBRL > 0 && (
+                <div className="inline-flex items-center rounded-xl bg-emerald-400/15 border border-emerald-400/25 px-3 py-2 text-sm text-emerald-100">
+                  💰 Você recebe <span className="font-semibold mx-1">{formatBRL(bestSavingsBRL)}</span> a mais que a #2
+                </div>
+              )}
+              {bestReason && (
+                <div className="text-sm text-white/70">
+                  ✅ Por quê: <span className="font-semibold text-white">{bestReason}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="text-right">
@@ -74,18 +96,18 @@ function recommendation(rank: number) {
   if (rank === 1) {
     return {
       label: "MELHOR OPÇÃO",
-      cls: "bg-emerald-400/15 text-emerald-200 border border-emerald-400/25",
+      cls: "bg-emerald-400/15 text-emerald-200 border-emerald-400/25",
     };
   }
   if (rank <= 3) {
     return {
       label: "BOA OPÇÃO",
-      cls: "bg-amber-400/15 text-amber-200 border border-amber-400/25",
+      cls: "bg-amber-400/15 text-amber-200 border-amber-400/25",
     };
   }
   return {
     label: "OPÇÃO OK",
-    cls: "bg-white/10 text-white/80 border border-white/10",
+    cls: "bg-white/10 text-white/80 border-white/10",
   };
 }
 
