@@ -1,10 +1,8 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/site/SiteHeader";
 
 export default function HowItWorksPage() {
   return (
     <main className="min-h-screen text-white bg-gradient-to-b from-[#050611] via-[#070A12] to-[#050611]">
-      <SiteHeader />
 
       <div className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="text-3xl sm:text-4xl font-semibold">Como funciona</h1>

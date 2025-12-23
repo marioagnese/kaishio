@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { SiteHeader } from "@/components/site/SiteHeader";
 
 type Lesson = {
   id: string;
@@ -85,7 +84,6 @@ export default function EducationPage() {
 
   return (
     <main className="min-h-screen text-white bg-gradient-to-b from-[#050611] via-[#070A12] to-[#050611]">
-      <SiteHeader />
 
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="max-w-3xl">
