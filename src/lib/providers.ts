@@ -9,30 +9,34 @@ export type ProviderId =
   | "western_union"
   | "moneygram";
 
+export type ProviderColor = {
+  border: string;
+  bg: string;
+  glow: string;
+  badge: string;
+};
+
 export type Provider = {
   id: ProviderId;
   name: string;
   tagline: string;
   methods: DeliveryMethod[];
-  // affiliate or standard link (you can update later)
   link: string;
 
-  // Fee model: approximate / for MVP (you'll tweak these with real observed values)
-  // fixed fee in USD + percent fee of amount
+  // Visual identity for cards (Tailwind classes)
+  color: ProviderColor;
+
   feeUSD: {
     bank: { fixed: number; pct: number };
     debit: { fixed: number; pct: number };
     cash: { fixed: number; pct: number };
   };
 
-  // FX spread assumption (percentage of mid-market rate)
-  // Example: 0.008 = 0.8% spread
   spread: {
     weekday: number;
     weekend: number;
   };
 
-  // Delivery estimate (rough) for display + ranking
   etaHours: {
     bank: { min: number; max: number };
     debit: { min: number; max: number };
@@ -47,9 +51,15 @@ export const PROVIDERS: Provider[] = [
     tagline: "Geralmente ótimo em câmbio",
     methods: ["bank", "debit"],
     link: "https://wise.com/",
+    color: {
+      border: "border-emerald-400/35",
+      bg: "bg-emerald-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(52,211,153,0.18)]",
+      badge: "bg-emerald-400/15 text-emerald-200",
+    },
     feeUSD: {
-      bank: { fixed: 0.6, pct: 0.004 },  // 0.4%
-      debit: { fixed: 0.9, pct: 0.006 }, // 0.6%
+      bank: { fixed: 0.6, pct: 0.004 },
+      debit: { fixed: 0.9, pct: 0.006 },
       cash: { fixed: 0, pct: 0 },
     },
     spread: { weekday: 0.004, weekend: 0.007 },
@@ -65,16 +75,22 @@ export const PROVIDERS: Provider[] = [
     tagline: "Boa velocidade e opções",
     methods: ["bank", "debit", "cash"],
     link: "https://www.remitly.com/",
+    color: {
+      border: "border-sky-400/35",
+      bg: "bg-sky-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(56,189,248,0.18)]",
+      badge: "bg-sky-400/15 text-sky-200",
+    },
     feeUSD: {
       bank: { fixed: 1.99, pct: 0.007 },
       debit: { fixed: 2.99, pct: 0.012 },
       cash: { fixed: 3.99, pct: 0.015 },
     },
-    spread: { weekday: 0.010, weekend: 0.016 },
+    spread: { weekday: 0.01, weekend: 0.016 },
     etaHours: {
       bank: { min: 0.25, max: 24 },
-      debit: { min: 0.10, max: 2 },
-      cash: { min: 0.10, max: 1 },
+      debit: { min: 0.1, max: 2 },
+      cash: { min: 0.1, max: 1 },
     },
   },
   {
@@ -83,8 +99,14 @@ export const PROVIDERS: Provider[] = [
     tagline: "Rede PayPal + cash pickup",
     methods: ["bank", "debit", "cash"],
     link: "https://www.xoom.com/",
+    color: {
+      border: "border-indigo-400/35",
+      bg: "bg-indigo-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(129,140,248,0.18)]",
+      badge: "bg-indigo-400/15 text-indigo-200",
+    },
     feeUSD: {
-      bank: { fixed: 2.99, pct: 0.010 },
+      bank: { fixed: 2.99, pct: 0.01 },
       debit: { fixed: 3.99, pct: 0.014 },
       cash: { fixed: 4.99, pct: 0.018 },
     },
@@ -92,7 +114,7 @@ export const PROVIDERS: Provider[] = [
     etaHours: {
       bank: { min: 1, max: 48 },
       debit: { min: 0.25, max: 4 },
-      cash: { min: 0.10, max: 1 },
+      cash: { min: 0.1, max: 1 },
     },
   },
   {
@@ -101,15 +123,21 @@ export const PROVIDERS: Provider[] = [
     tagline: "Conveniência (pode custar mais)",
     methods: ["debit"],
     link: "https://www.paypal.com/",
+    color: {
+      border: "border-blue-400/35",
+      bg: "bg-blue-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(96,165,250,0.18)]",
+      badge: "bg-blue-400/15 text-blue-200",
+    },
     feeUSD: {
       bank: { fixed: 0, pct: 0 },
-      debit: { fixed: 0.0, pct: 0.020 },
+      debit: { fixed: 0, pct: 0.02 },
       cash: { fixed: 0, pct: 0 },
     },
-    spread: { weekday: 0.030, weekend: 0.035 },
+    spread: { weekday: 0.03, weekend: 0.035 },
     etaHours: {
       bank: { min: 0, max: 0 },
-      debit: { min: 0.10, max: 2 },
+      debit: { min: 0.1, max: 2 },
       cash: { min: 0, max: 0 },
     },
   },
@@ -119,16 +147,22 @@ export const PROVIDERS: Provider[] = [
     tagline: "Muito forte em cash pickup",
     methods: ["bank", "debit", "cash"],
     link: "https://www.westernunion.com/",
+    color: {
+      border: "border-amber-400/35",
+      bg: "bg-amber-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(251,191,36,0.18)]",
+      badge: "bg-amber-400/15 text-amber-200",
+    },
     feeUSD: {
       bank: { fixed: 4.99, pct: 0.012 },
       debit: { fixed: 5.99, pct: 0.018 },
-      cash: { fixed: 6.99, pct: 0.020 },
+      cash: { fixed: 6.99, pct: 0.02 },
     },
-    spread: { weekday: 0.020, weekend: 0.030 },
+    spread: { weekday: 0.02, weekend: 0.03 },
     etaHours: {
       bank: { min: 2, max: 72 },
       debit: { min: 0.25, max: 6 },
-      cash: { min: 0.10, max: 1 },
+      cash: { min: 0.1, max: 1 },
     },
   },
   {
@@ -137,16 +171,22 @@ export const PROVIDERS: Provider[] = [
     tagline: "Alternativa popular para cash",
     methods: ["bank", "debit", "cash"],
     link: "https://www.moneygram.com/",
+    color: {
+      border: "border-rose-400/35",
+      bg: "bg-rose-400/5",
+      glow: "shadow-[0_0_0_1px_rgba(251,113,133,0.18)]",
+      badge: "bg-rose-400/15 text-rose-200",
+    },
     feeUSD: {
       bank: { fixed: 3.99, pct: 0.012 },
       debit: { fixed: 4.99, pct: 0.018 },
-      cash: { fixed: 5.99, pct: 0.020 },
+      cash: { fixed: 5.99, pct: 0.02 },
     },
-    spread: { weekday: 0.020, weekend: 0.030 },
+    spread: { weekday: 0.02, weekend: 0.03 },
     etaHours: {
       bank: { min: 2, max: 72 },
       debit: { min: 0.25, max: 6 },
-      cash: { min: 0.10, max: 1 },
+      cash: { min: 0.1, max: 1 },
     },
   },
 ];
@@ -164,8 +204,6 @@ export function formatBRL(n: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
 }
 
-// Use mid-market rate as a user input (default example).
-// We apply provider spread to estimate customer rate.
 export function applySpread(midRate: number, spreadPct: number) {
   const rate = midRate * (1 - spreadPct);
   return Math.max(0, rate);
@@ -179,11 +217,10 @@ export type Quote = {
   isWeekend: boolean;
 
   feeUSD: number;
-  customerRate: number; // BRL per USD after spread
+  customerRate: number;
   brlEstimated: number;
   etaLabel: string;
 
-  // For explaining
   spreadPct: number;
 };
 
@@ -231,7 +268,6 @@ export function buildQuote(args: {
 export function rankQuotes(quotes: Quote[], pref: SpeedPreference) {
   const copy = [...quotes];
 
-  // cost proxy: higher BRL received is better; speed proxy: lower ETA mid is better
   const etaMidHours = (q: Quote) => {
     const eta = q.provider.etaHours[q.method];
     return (eta.min + eta.max) / 2;
@@ -247,7 +283,6 @@ export function rankQuotes(quotes: Quote[], pref: SpeedPreference) {
     return copy;
   }
 
-  // balanced: normalize both (simple heuristic)
   const maxBrl = Math.max(...copy.map((q) => q.brlEstimated));
   const minBrl = Math.min(...copy.map((q) => q.brlEstimated));
   const maxEta = Math.max(...copy.map((q) => etaMidHours(q)));
