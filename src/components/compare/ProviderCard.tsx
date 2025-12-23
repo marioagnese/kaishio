@@ -10,6 +10,7 @@ export default function ProviderCard({
   rank: number;
 }) {
   const { provider } = quote;
+  const rec = recommendation(rank);
 
   return (
     <a
@@ -26,13 +27,17 @@ export default function ProviderCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div
-            className={[
-              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-              provider.color.badge,
-            ].join(" ")}
-          >
-            #{rank}
+          {/* Recommendation + rank */}
+          <div className="flex items-center gap-2">
+            <div
+              className={[
+                "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+                rec.cls,
+              ].join(" ")}
+            >
+              {rec.label}
+            </div>
+            <div className="text-xs text-white/55">#{rank}</div>
           </div>
 
           <div className="text-xl font-semibold mt-2">{provider.name}</div>
@@ -63,6 +68,25 @@ export default function ProviderCard({
       </div>
     </a>
   );
+}
+
+function recommendation(rank: number) {
+  if (rank === 1) {
+    return {
+      label: "MELHOR OPÇÃO",
+      cls: "bg-emerald-400/15 text-emerald-200 border border-emerald-400/25",
+    };
+  }
+  if (rank <= 3) {
+    return {
+      label: "BOA OPÇÃO",
+      cls: "bg-amber-400/15 text-amber-200 border border-amber-400/25",
+    };
+  }
+  return {
+    label: "OPÇÃO OK",
+    cls: "bg-white/10 text-white/80 border border-white/10",
+  };
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
