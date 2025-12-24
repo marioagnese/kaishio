@@ -19,12 +19,13 @@ export default function ComparePage() {
   const [method, setMethod] = useState<DeliveryMethod>("bank");
   const [pref, setPref] = useState<SpeedPreference>("balanced");
 
-  const [fxLoading, setFxLoading] = useState(false);
+  const [fxLoading, setFxLoading] = useState<boolean>(false);
   const [fxError, setFxError] = useState<string | null>(null);
   const [fxStamp, setFxStamp] = useState<string | null>(null);
 
   const quotes = useMemo(() => {
     const built: Quote[] = [];
+
     for (const p of PROVIDERS) {
       const q = buildQuote({
         provider: p,
@@ -35,6 +36,7 @@ export default function ComparePage() {
       });
       if (q) built.push(q);
     }
+
     return rankQuotes(built, pref);
   }, [method, usdAmount, midRate, isWeekend, pref]);
 
@@ -63,16 +65,14 @@ export default function ComparePage() {
       const data: { rate: number; date?: string; provider?: string } =
         await res.json();
 
-      if (!data?.rate || Number.isNaN(data.rate)) {
+      if (!data.rate || Number.isNaN(data.rate)) {
         throw new Error("Resposta inválida do câmbio.");
       }
 
       setMidRate(data.rate);
       setFxStamp(`${data.provider ?? "FX"} • ${data.date ?? "hoje"}`);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Erro ao buscar câmbio.";
-      setFxError(message);
+      setFxError(err instanceof Error ? err.message : "Erro ao buscar câmbio.");
     } finally {
       setFxLoading(false);
     }
@@ -136,7 +136,9 @@ export default function ComparePage() {
             <Control label="Método">
               <select
                 value={method}
-                onChange={(e) => setMethod(e.target.value as DeliveryMethod)}
+                onChange={(e) =>
+                  setMethod(e.target.value as DeliveryMethod)
+                }
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
                 <option value="bank">Conta bancária</option>
@@ -148,7 +150,9 @@ export default function ComparePage() {
             <Control label="Preferência">
               <select
                 value={pref}
-                onChange={(e) => setPref(e.target.value as SpeedPreference)}
+                onChange={(e) =>
+                  setPref(e.target.value as SpeedPreference)
+                }
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
                 <option value="balanced">Equilíbrio</option>
@@ -211,13 +215,35 @@ function Control({
   );
 }
 
+/**
+ * One-line explanation of why #1 beats #2
+ */
 function computeBestReason(best: Quote, second: Quote) {
   const spreadDiff = (second.spreadPct - best.spreadPct) * 100;
   const feeDiff = second.feeUSD - best.feeUSD;
   const bestEta = etaMidHours(best);
   const secondEta = etaMidHours(second);
 
-  if (spreadDiff >= 0.3) return "Menor spread no câmbio (custo real menor).";
-  if (feeDiff >= 1.0) return "Taxa total menor (você perde menos em fees).";
-  if (secondEta - bestEta >= 4)
-    return "Entrega m
+  if (spreadDiff >= 0.3) {
+    return "Menor spread no câmbio (custo real menor).";
+  }
+
+  if (feeDiff >= 1.0) {
+    return "Taxa total menor (você perde menos em fees).";
+  }
+
+  if (secondEta - bestEta >= 4) {
+    return "Entrega significativamente mais rápida com bom custo-benefício.";
+  }
+
+  if (spreadDiff > 0 && feeDiff > 0) {
+    return "Melhor combinação de taxa + câmbio hoje.";
+  }
+
+  return "Melhor custo-benefício geral com base nas estimativas.";
+}
+
+function etaMidHours(q: Quote) {
+  const eta = q.provider.etaHours[q.method];
+  return (eta.min + eta.max) / 2;
+}
