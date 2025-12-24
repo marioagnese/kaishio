@@ -26,7 +26,13 @@ export default function ComparePage() {
   const quotes = useMemo(() => {
     const built: Quote[] = [];
     for (const p of PROVIDERS) {
-      const q = buildQuote({ provider: p, method, usdAmount, midRate, isWeekend });
+      const q = buildQuote({
+        provider: p,
+        method,
+        usdAmount,
+        midRate,
+        isWeekend,
+      });
       if (q) built.push(q);
     }
     return rankQuotes(built, pref);
@@ -49,15 +55,24 @@ export default function ComparePage() {
   async function handleAutoFx() {
     setFxLoading(true);
     setFxError(null);
+
     try {
       const res = await fetch("/api/fx?from=USD&to=BRL", { cache: "no-store" });
       if (!res.ok) throw new Error("Falha ao buscar câmbio.");
-      const data = (await res.json()) as { rate: number; date?: string; provider?: string };
-      if (!data?.rate || Number.isNaN(data.rate)) throw new Error("Resposta inválida do câmbio.");
+
+      const data: { rate: number; date?: string; provider?: string } =
+        await res.json();
+
+      if (!data?.rate || Number.isNaN(data.rate)) {
+        throw new Error("Resposta inválida do câmbio.");
+      }
+
       setMidRate(data.rate);
       setFxStamp(`${data.provider ?? "FX"} • ${data.date ?? "hoje"}`);
-    } catch (e: any) {
-      setFxError(e?.message ?? "Erro ao buscar câmbio.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao buscar câmbio.";
+      setFxError(message);
     } finally {
       setFxLoading(false);
     }
@@ -70,7 +85,8 @@ export default function ComparePage() {
           Comparar provedores (EUA → Brasil)
         </h1>
         <p className="mt-2 text-white/70">
-          Insira o valor, escolha o método e veja a melhor opção com estimativa de BRL.
+          Insira o valor, escolha o método e veja a melhor opção com estimativa de
+          BRL.
         </p>
 
         {/* Controls */}
@@ -84,10 +100,12 @@ export default function ComparePage() {
                 onChange={(e) => setUsdAmount(Number(e.target.value || 0))}
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               />
-              <div className="mt-1 text-xs text-white/50">Você envia: {formatUSD(usdAmount)}</div>
+              <div className="mt-1 text-xs text-white/50">
+                Você envia: {formatUSD(usdAmount)}
+              </div>
             </Control>
 
-            <Control label="Câmbio (USD→BRL)">
+            <Control label="Câmbio (USD → BRL)">
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -105,7 +123,13 @@ export default function ComparePage() {
                 </button>
               </div>
               <div className="mt-1 text-xs text-white/55">
-                {fxError ? <span className="text-red-200">{fxError}</span> : fxStamp ? fxStamp : "Dica: use Auto FX para pegar o câmbio do dia."}
+                {fxError ? (
+                  <span className="text-red-200">{fxError}</span>
+                ) : fxStamp ? (
+                  fxStamp
+                ) : (
+                  "Dica: use Auto FX para pegar o câmbio do dia."
+                )}
               </div>
             </Control>
 
@@ -144,7 +168,8 @@ export default function ComparePage() {
           </div>
 
           <div className="text-xs text-white/55 leading-relaxed">
-            Aviso: Kaishio é informativo. Valores finais variam por promoções, verificação do usuário, horário e método.
+            Aviso: Kaishio é informativo. Valores finais variam por promoções,
+            verificação do usuário, horário e método.
           </div>
         </div>
 
@@ -171,7 +196,13 @@ export default function ComparePage() {
   );
 }
 
-function Control({ label, children }: { label: string; children: React.ReactNode }) {
+function Control({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <div className="text-xs text-white/60 mb-2">{label}</div>
@@ -180,27 +211,13 @@ function Control({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-/**
- * One-line “why best” logic comparing #1 vs #2.
- * We keep it simple and human.
- */
 function computeBestReason(best: Quote, second: Quote) {
-  const spreadDiff = (second.spreadPct - best.spreadPct) * 100; // percentage points
-  const feeDiff = second.feeUSD - best.feeUSD; // USD
+  const spreadDiff = (second.spreadPct - best.spreadPct) * 100;
+  const feeDiff = second.feeUSD - best.feeUSD;
   const bestEta = etaMidHours(best);
   const secondEta = etaMidHours(second);
 
-  // Strong signals first
   if (spreadDiff >= 0.3) return "Menor spread no câmbio (custo real menor).";
   if (feeDiff >= 1.0) return "Taxa total menor (você perde menos em fees).";
-  if (secondEta - bestEta >= 4) return "Entrega mais rápida com bom custo-benefício.";
-
-  // Otherwise: combination
-  if (spreadDiff > 0 && feeDiff > 0) return "Melhor combinação de taxa + câmbio hoje.";
-  return "Melhor custo-benefício geral com base nas estimativas.";
-}
-
-function etaMidHours(q: Quote) {
-  const eta = q.provider.etaHours[q.method];
-  return (eta.min + eta.max) / 2;
-}
+  if (secondEta - bestEta >= 4)
+    return "Entrega m
