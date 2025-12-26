@@ -1,3 +1,5 @@
+// src/lib/providers.ts
+
 export type DeliveryMethod = "bank" | "debit" | "cash";
 export type SpeedPreference = "cheapest" | "fastest" | "balanced";
 
@@ -7,12 +9,7 @@ export type ProviderId =
   | "xoom"
   | "paypal"
   | "western_union"
-  | "moneygram"
-  | "sendwave"
-  | "revolut"
-  | "ria"
-  | "xe"
-  | "sharemoney";
+  | "moneygram";
 
 export type ProviderColor = {
   border: string;
@@ -31,17 +28,20 @@ export type Provider = {
   // Visual identity for cards (Tailwind classes)
   color: ProviderColor;
 
+  // Fee model: approximate, per method
   feeUSD: {
     bank: { fixed: number; pct: number };
     debit: { fixed: number; pct: number };
     cash: { fixed: number; pct: number };
   };
 
+  // FX spread assumption (percentage of mid-market rate)
   spread: {
     weekday: number;
     weekend: number;
   };
 
+  // Delivery estimate (rough) for display + ranking
   etaHours: {
     bank: { min: number; max: number };
     debit: { min: number; max: number };
@@ -194,131 +194,136 @@ export const PROVIDERS: Provider[] = [
       cash: { min: 0.1, max: 1 },
     },
   },
+];
 
-  // NEW PROVIDERS
+// ---------- COUNTRY MATRIX (LATAM) ----------
+
+export type CountryCode = "BR" | "MX" | "AR" | "CL" | "CO" | "VE" | "PE" | "EC";
+
+export type CountryConfig = {
+  code: CountryCode;
+  label: {
+    en: string;
+    pt: string;
+    es: string;
+  };
+  currencyCode: string;
+  currencySymbol: string;
+  // Just a hint / default for mid-market; user can override or use Auto FX
+  defaultMidRate: number;
+  // Which providers we include for that corridor (MVP assumptions)
+  providers: ProviderId[];
+};
+
+export const COUNTRIES: CountryConfig[] = [
   {
-    id: "sendwave",
-    name: "SendWave",
-    tagline: "Remessas simples e rápidas",
-    methods: ["bank"],
-    link: "https://www.sendwave.com/en-us/countries/brazil",
-    color: {
-      border: "border-teal-400/35",
-      bg: "bg-teal-400/5",
-      glow: "shadow-[0_0_0_1px_rgba(45,212,191,0.18)]",
-      badge: "bg-teal-400/15 text-teal-100",
+    code: "BR",
+    label: {
+      en: "Brazil",
+      pt: "Brasil",
+      es: "Brasil",
     },
-    feeUSD: {
-      bank: { fixed: 2.99, pct: 0.01 },
-      debit: { fixed: 0, pct: 0 },
-      cash: { fixed: 0, pct: 0 },
-    },
-    spread: { weekday: 0.012, weekend: 0.018 },
-    etaHours: {
-      bank: { min: 0.5, max: 24 },
-      debit: { min: 0, max: 0 },
-      cash: { min: 0, max: 0 },
-    },
+    currencyCode: "BRL",
+    currencySymbol: "R$",
+    defaultMidRate: 5.3,
+    providers: ["wise", "remitly", "xoom", "paypal", "western_union", "moneygram"],
   },
   {
-    id: "revolut",
-    name: "Revolut",
-    tagline: "Bom câmbio + experiência moderna",
-    methods: ["bank", "debit"],
-    link: "https://www.revolut.com/en-US/money-transfer/send-money-to-brazil/",
-    color: {
-      border: "border-violet-400/35",
-      bg: "bg-violet-400/5",
-      glow: "shadow-[0_0_0_1px_rgba(167,139,250,0.18)]",
-      badge: "bg-violet-400/15 text-violet-100",
+    code: "MX",
+    label: {
+      en: "Mexico",
+      pt: "México",
+      es: "México",
     },
-    feeUSD: {
-      bank: { fixed: 0, pct: 0.007 },
-      debit: { fixed: 1.49, pct: 0.01 },
-      cash: { fixed: 0, pct: 0 },
-    },
-    spread: { weekday: 0.006, weekend: 0.01 },
-    etaHours: {
-      bank: { min: 1, max: 48 },
-      debit: { min: 0.25, max: 4 },
-      cash: { min: 0, max: 0 },
-    },
+    currencyCode: "MXN",
+    currencySymbol: "$",
+    defaultMidRate: 17.0,
+    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
   },
   {
-    id: "ria",
-    name: "RIA Money Transfer",
-    tagline: "Forte em cash pickup e rede ampla",
-    methods: ["bank", "debit", "cash"],
-    link: "https://www.riamoneytransfer.com/en-us/send-money-to-brazil/",
-    color: {
-      border: "border-orange-400/35",
-      bg: "bg-orange-400/5",
-      glow: "shadow-[0_0_0_1px_rgba(251,146,60,0.18)]",
-      badge: "bg-orange-400/15 text-orange-100",
+    code: "AR",
+    label: {
+      en: "Argentina",
+      pt: "Argentina",
+      es: "Argentina",
     },
-    feeUSD: {
-      bank: { fixed: 3.99, pct: 0.012 },
-      debit: { fixed: 4.99, pct: 0.016 },
-      cash: { fixed: 5.99, pct: 0.02 },
-    },
-    spread: { weekday: 0.02, weekend: 0.03 },
-    etaHours: {
-      bank: { min: 2, max: 72 },
-      debit: { min: 0.5, max: 6 },
-      cash: { min: 0.1, max: 1 },
-    },
+    currencyCode: "ARS",
+    currencySymbol: "$",
+    defaultMidRate: 1000, // placeholder, user should Auto FX
+    providers: ["wise", "xoom", "western_union", "moneygram"],
   },
   {
-    id: "xe",
-    name: "XE",
-    tagline: "Marca conhecida em câmbio",
-    methods: ["bank"],
-    link: "https://www.xe.com/",
-    color: {
-      border: "border-lime-400/35",
-      bg: "bg-lime-400/5",
-      glow: "shadow-[0_0_0_1px_rgba(163,230,53,0.18)]",
-      badge: "bg-lime-400/15 text-lime-100",
+    code: "CL",
+    label: {
+      en: "Chile",
+      pt: "Chile",
+      es: "Chile",
     },
-    feeUSD: {
-      bank: { fixed: 2.99, pct: 0.01 },
-      debit: { fixed: 0, pct: 0 },
-      cash: { fixed: 0, pct: 0 },
-    },
-    spread: { weekday: 0.01, weekend: 0.016 },
-    etaHours: {
-      bank: { min: 1, max: 48 },
-      debit: { min: 0, max: 0 },
-      cash: { min: 0, max: 0 },
-    },
+    currencyCode: "CLP",
+    currencySymbol: "$",
+    defaultMidRate: 900,
+    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
   },
   {
-    id: "sharemoney",
-    name: "ShareMoney",
-    tagline: "Opção alternativa com cash pickup",
-    methods: ["bank", "cash"],
-    link: "https://www.sharemoney.com/us/en/brazil",
-    color: {
-      border: "border-fuchsia-400/35",
-      bg: "bg-fuchsia-400/5",
-      glow: "shadow-[0_0_0_1px_rgba(232,121,249,0.18)]",
-      badge: "bg-fuchsia-400/15 text-fuchsia-100",
+    code: "CO",
+    label: {
+      en: "Colombia",
+      pt: "Colômbia",
+      es: "Colombia",
     },
-    feeUSD: {
-      bank: { fixed: 2.99, pct: 0.01 },
-      debit: { fixed: 0, pct: 0 },
-      cash: { fixed: 4.99, pct: 0.018 },
+    currencyCode: "COP",
+    currencySymbol: "$",
+    defaultMidRate: 4000,
+    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+  },
+  {
+    code: "VE",
+    label: {
+      en: "Venezuela",
+      pt: "Venezuela",
+      es: "Venezuela",
     },
-    spread: { weekday: 0.018, weekend: 0.026 },
-    etaHours: {
-      bank: { min: 1, max: 48 },
-      debit: { min: 0, max: 0 },
-      cash: { min: 0.25, max: 2 },
+    currencyCode: "VES",
+    currencySymbol: "Bs",
+    defaultMidRate: 40,
+    providers: ["western_union", "moneygram"],
+  },
+  {
+    code: "PE",
+    label: {
+      en: "Peru",
+      pt: "Peru",
+      es: "Perú",
     },
+    currencyCode: "PEN",
+    currencySymbol: "S/",
+    defaultMidRate: 3.7,
+    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+  },
+  {
+    code: "EC",
+    label: {
+      en: "Ecuador",
+      pt: "Equador",
+      es: "Ecuador",
+    },
+    currencyCode: "USD",
+    currencySymbol: "$",
+    defaultMidRate: 1,
+    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
   },
 ];
 
-// Helpers
+export const COUNTRY_BY_CODE: Record<CountryCode, CountryConfig> = COUNTRIES.reduce(
+  (acc, c) => {
+    acc[c.code] = c;
+    return acc;
+  },
+  {} as Record<CountryCode, CountryConfig>
+);
+
+// ---------- HELPERS ----------
+
 export function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
@@ -330,28 +335,37 @@ export function formatUSD(n: number) {
   }).format(n);
 }
 
-export function formatBRL(n: number) {
-  return new Intl.NumberFormat("pt-BR", {
+// Generic formatter for destination currency
+export function formatDestCurrency(n: number, currencyCode: string) {
+  const locale = currencyCode === "BRL" ? "pt-BR" : "en-US";
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "BRL",
+    currency: currencyCode,
   }).format(n);
 }
 
+// Legacy helper in case anything still uses it
+export const formatBRL = (n: number) => formatDestCurrency(n, "BRL");
+
+// Apply spread to mid-market rate
 export function applySpread(midRate: number, spreadPct: number) {
   const rate = midRate * (1 - spreadPct);
   return Math.max(0, rate);
 }
 
+// ---------- QUOTES / RANKING ----------
+
 export type Quote = {
   provider: Provider;
+  countryCode: CountryCode;
   method: DeliveryMethod;
   usdAmount: number;
   midRate: number;
   isWeekend: boolean;
 
   feeUSD: number;
-  customerRate: number;
-  brlEstimated: number;
+  customerRate: number; // dest currency per USD after spread
+  receiveAmount: number; // amount in destination currency
   etaLabel: string;
 
   spreadPct: number;
@@ -359,12 +373,18 @@ export type Quote = {
 
 export function buildQuote(args: {
   provider: Provider;
+  countryCode: CountryCode;
   method: DeliveryMethod;
   usdAmount: number;
   midRate: number;
   isWeekend: boolean;
 }): Quote | null {
-  const { provider, method, usdAmount, midRate, isWeekend } = args;
+  const { provider, countryCode, method, usdAmount, midRate, isWeekend } = args;
+
+  // Check if provider is available for this corridor
+  const countryConfig = COUNTRY_BY_CODE[countryCode];
+  if (!countryConfig.providers.includes(provider.id)) return null;
+
   if (!provider.methods.includes(method)) return null;
 
   const feeModel = provider.feeUSD[method];
@@ -374,7 +394,7 @@ export function buildQuote(args: {
   const customerRate = applySpread(midRate, spreadPct);
 
   const usdNet = Math.max(0, usdAmount - feeUSD);
-  const brlEstimated = usdNet * customerRate;
+  const receiveAmount = usdNet * customerRate;
 
   const eta = provider.etaHours[method];
   const etaLabel =
@@ -386,13 +406,14 @@ export function buildQuote(args: {
 
   return {
     provider,
+    countryCode,
     method,
     usdAmount,
     midRate,
     isWeekend,
     feeUSD,
     customerRate,
-    brlEstimated,
+    receiveAmount,
     etaLabel,
     spreadPct,
   };
@@ -407,7 +428,7 @@ export function rankQuotes(quotes: Quote[], pref: SpeedPreference) {
   };
 
   if (pref === "cheapest") {
-    copy.sort((a, b) => b.brlEstimated - a.brlEstimated);
+    copy.sort((a, b) => b.receiveAmount - a.receiveAmount);
     return copy;
   }
 
@@ -416,19 +437,16 @@ export function rankQuotes(quotes: Quote[], pref: SpeedPreference) {
     return copy;
   }
 
-  const maxBrl = Math.max(...copy.map((q) => q.brlEstimated));
-  const minBrl = Math.min(...copy.map((q) => q.brlEstimated));
+  // balanced: normalize cost and speed
+  const maxAmt = Math.max(...copy.map((q) => q.receiveAmount));
+  const minAmt = Math.min(...copy.map((q) => q.receiveAmount));
   const maxEta = Math.max(...copy.map((q) => etaMidHours(q)));
   const minEta = Math.min(...copy.map((q) => etaMidHours(q)));
 
   const score = (q: Quote) => {
-    const brlNorm =
-      maxBrl === minBrl ? 1 : (q.brlEstimated - minBrl) / (maxBrl - minBrl);
-    const etaNorm =
-      maxEta === minEta
-        ? 1
-        : 1 - (etaMidHours(q) - minEta) / (maxEta - minEta);
-    return brlNorm * 0.65 + etaNorm * 0.35;
+    const amtNorm = maxAmt === minAmt ? 1 : (q.receiveAmount - minAmt) / (maxAmt - minAmt);
+    const etaNorm = maxEta === minEta ? 1 : 1 - (etaMidHours(q) - minEta) / (maxEta - minEta);
+    return amtNorm * 0.65 + etaNorm * 0.35;
   };
 
   copy.sort((a, b) => score(b) - score(a));

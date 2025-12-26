@@ -1,94 +1,30 @@
+// src/components/compare/ProviderCard.tsx
 "use client";
 
 import { useState } from "react";
-import { Quote, formatBRL, formatUSD } from "@/lib/providers";
-import { useLanguage, type Language } from "@/contexts/LanguageContext";
-
-type CardCopy = {
-  brlEstimatedLabel: string;
-  etaLabel: string;
-  feeLabel: string;
-  rateLabel: string;
-  spreadLabel: string;
-  methodLabel: string;
-  disclaimer: string;
-  bestBadge: string;
-  savePrefix: string;
-  saveSuffix: string;
-  showCalc: string;
-  hideCalc: string;
-  cta: (name: string) => string;
-};
-
-const CARD_COPY: Record<Language, CardCopy> = {
-  en: {
-    brlEstimatedLabel: "Estimated BRL you receive",
-    etaLabel: "ETA",
-    feeLabel: "Fee (USD)",
-    rateLabel: "Estimated rate",
-    spreadLabel: "Assumed spread",
-    methodLabel: "Method",
-    disclaimer:
-      "*Estimate: fee + assumed spread over mid-market. Final value can change due to promos, time, method, and KYC.",
-    bestBadge: "Best option",
-    savePrefix: "You save",
-    saveSuffix: "vs next option",
-    showCalc: "Show calculation",
-    hideCalc: "Hide calculation",
-    cta: (name) => `Go to ${name}`,
-  },
-  pt: {
-    brlEstimatedLabel: "BRL estimado que chega",
-    etaLabel: "Prazo",
-    feeLabel: "Taxa (USD)",
-    rateLabel: "Câmbio estimado",
-    spreadLabel: "Spread assumido",
-    methodLabel: "Método",
-    disclaimer:
-      "*Estimativa: taxa + spread assumido sobre o câmbio “mid-market”. O valor final pode mudar por promoções, horário, método e verificação.",
-    bestBadge: "Melhor opção",
-    savePrefix: "Você economiza",
-    saveSuffix: "vs próxima opção",
-    showCalc: "Mostrar cálculo",
-    hideCalc: "Esconder cálculo",
-    cta: (name) => `Ir para ${name}`,
-  },
-  es: {
-    brlEstimatedLabel: "BRL estimado que recibes",
-    etaLabel: "Tiempo",
-    feeLabel: "Comisión (USD)",
-    rateLabel: "Cambio estimado",
-    spreadLabel: "Spread asumido",
-    methodLabel: "Método",
-    disclaimer:
-      "*Estimación: comisión + spread asumido sobre el tipo “mid-market”. El valor final puede cambiar por promociones, horario, método y verificación.",
-    bestBadge: "Mejor opción",
-    savePrefix: "Ahorras",
-    saveSuffix: "vs siguiente opción",
-    showCalc: "Mostrar cálculo",
-    hideCalc: "Ocultar cálculo",
-    cta: (name) => `Ir a ${name}`,
-  },
-};
+import {
+  Quote,
+  formatUSD,
+  formatDestCurrency,
+  COUNTRY_BY_CODE,
+} from "@/lib/providers";
 
 export default function ProviderCard({
   quote,
   rank,
-  bestSavingsBRL,
+  bestSavings,
   bestReason,
 }: {
   quote: Quote;
   rank: number;
-  bestSavingsBRL?: number;
+  bestSavings?: number;
   bestReason?: string;
 }) {
   const { provider } = quote;
-  const { lang } = useLanguage();
-  const t = CARD_COPY[lang];
-
+  const country = COUNTRY_BY_CODE[quote.countryCode];
   const [showCalc, setShowCalc] = useState(false);
 
-  const isBest = rank === 1 && bestSavingsBRL && bestSavingsBRL > 0;
+  const usdNet = Math.max(0, quote.usdAmount - quote.feeUSD);
 
   return (
     <a
@@ -97,7 +33,7 @@ export default function ProviderCard({
       rel="noreferrer"
       className={[
         "block rounded-2xl border transition p-5",
-        "hover:translate-y-[-1px]",
+        "hover:translate-y-[-1px] hover:bg-white/10",
         provider.color.border,
         provider.color.bg,
         provider.color.glow,
@@ -105,103 +41,107 @@ export default function ProviderCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <div
-              className={[
-                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-                provider.color.badge,
-              ].join(" ")}
-            >
-              #{rank}
+          <div
+            className={[
+              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
+              provider.color.badge,
+            ].join(" ")}
+          >
+            #{rank}
+          </div>
+
+          <div className="text-xl font-semibold mt-2">{provider.name}</div>
+          <div className="text-sm text-white/70 mt-1">{provider.tagline}</div>
+
+          {rank === 1 && bestSavings && bestSavings > 0 && (
+            <div className="mt-2 text-xs text-emerald-200 bg-emerald-500/10 inline-flex rounded-full px-3 py-1">
+              Você economiza{" "}
+              <span className="font-semibold ml-1">
+                {formatDestCurrency(bestSavings, country.currencyCode)}
+              </span>{" "}
+              vs. próxima opção.
             </div>
-            {isBest && (
-              <span className="inline-flex items-center rounded-full bg-emerald-400/15 text-emerald-100 px-2 py-0.5 text-xs font-semibold">
-                {t.bestBadge}
-              </span>
-            )}
-          </div>
+          )}
 
-          <div className="text-xl font-semibold mt-2">
-            {provider.name}
-          </div>
-          <div className="text-sm text-white/70 mt-1">
-            {provider.tagline}
-          </div>
-
-          {isBest && bestSavingsBRL && (
-            <div className="mt-2 text-xs text-emerald-100/90">
-              {t.savePrefix} {formatBRL(bestSavingsBRL)} {t.saveSuffix}.
-              {bestReason ? ` ${bestReason}` : null}
+          {rank === 1 && bestReason && (
+            <div className="mt-2 text-xs text-white/70">
+              Motivo: <span className="text-white">{bestReason}</span>
             </div>
           )}
         </div>
 
         <div className="text-right">
           <div className="text-xs text-white/60">
-            {t.brlEstimatedLabel}
+            {country.currencyCode} estimado
           </div>
           <div className="text-xl font-semibold">
-            {formatBRL(quote.brlEstimated)}
+            {formatDestCurrency(quote.receiveAmount, country.currencyCode)}
           </div>
           <div className="text-xs text-white/60 mt-1">
-            {t.etaLabel}: {quote.etaLabel}
+            ETA: {quote.etaLabel}
           </div>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Metric label={t.feeLabel} value={formatUSD(quote.feeUSD)} />
+        <Metric label="Taxa (USD)" value={formatUSD(quote.feeUSD)} />
         <Metric
-          label={t.rateLabel}
-          value={`${quote.customerRate.toFixed(4)} BRL/USD`}
+          label="Câmbio estimado"
+          value={`${quote.customerRate.toFixed(4)} ${country.currencyCode}/USD`}
         />
         <Metric
-          label={t.spreadLabel}
+          label="Spread assumido"
           value={`${(quote.spreadPct * 100).toFixed(1)}%`}
         />
-        <Metric
-          label={t.methodLabel}
-          value={methodLabel(quote.method, lang)}
-        />
+        <Metric label="Método" value={methodLabel(quote.method)} />
       </div>
 
+      {/* Show calculation toggle */}
       <button
         type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          setShowCalc((prev) => !prev);
-        }}
-        className="mt-4 text-xs underline text-white/70 hover:text-white"
+        onClick={() => setShowCalc((v) => !v)}
+        className="mt-4 text-xs text-white/70 underline underline-offset-4"
       >
-        {showCalc ? t.hideCalc : t.showCalc}
+        {showCalc ? "Esconder cálculo" : "Mostrar cálculo"}
       </button>
 
       {showCalc && (
-        <div className="mt-2 text-xs text-white/70 leading-relaxed">
-          {/* Simple explanation of the math */}
-          <p>
-            1) Mid-market rate: {quote.midRate.toFixed(4)} BRL/USD.
-          </p>
-          <p>
-            2) Spread assumed: {(quote.spreadPct * 100).toFixed(2)}% →{" "}
-            {quote.customerRate.toFixed(4)} BRL/USD for you.
-          </p>
-          <p>
-            3) Fees: {formatUSD(quote.feeUSD)} → net{" "}
-            {formatUSD(quote.usdAmount - quote.feeUSD)} sent.
-          </p>
-          <p>
-            4) Net USD × customer rate = {formatBRL(quote.brlEstimated)}.
-          </p>
+        <div className="mt-3 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-white/70 space-y-1">
+          <div>
+            Valor enviado:{" "}
+            <span className="font-semibold">
+              {formatUSD(quote.usdAmount)}
+            </span>
+          </div>
+          <div>
+            Taxas totais:{" "}
+            <span className="font-semibold">
+              {formatUSD(quote.feeUSD)}
+            </span>
+          </div>
+          <div>
+            USD líquido convertido:{" "}
+            <span className="font-semibold">
+              {formatUSD(usdNet)}
+            </span>
+          </div>
+          <div>
+            Câmbio aplicado:{" "}
+            <span className="font-semibold">
+              {quote.customerRate.toFixed(4)} {country.currencyCode}/USD
+            </span>
+          </div>
+          <div>
+            Valor estimado recebido:{" "}
+            <span className="font-semibold">
+              {formatDestCurrency(quote.receiveAmount, country.currencyCode)}
+            </span>
+          </div>
         </div>
       )}
 
-      <div className="mt-4 text-xs text-white/55 leading-relaxed">
-        {t.disclaimer}
-      </div>
-
       <div className="mt-4 inline-flex rounded-xl bg-white text-black px-4 py-2 text-sm font-semibold">
-        {t.cta(provider.name)}
+        Ir para {provider.name}
       </div>
     </a>
   );
@@ -216,20 +156,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function methodLabel(m: string, lang: Language): string {
-  if (lang === "en") {
-    if (m === "bank") return "Bank account";
-    if (m === "debit") return "Card/Debit";
-    if (m === "cash") return "Cash pickup";
-    return m;
-  }
-  if (lang === "es") {
-    if (m === "bank") return "Cuenta bancaria";
-    if (m === "debit") return "Tarjeta/Débito";
-    if (m === "cash") return "Retiro en efectivo";
-    return m;
-  }
-  // pt (default)
+function methodLabel(m: string) {
   if (m === "bank") return "Conta bancária";
   if (m === "debit") return "Cartão/Débito";
   if (m === "cash") return "Cash pickup";
