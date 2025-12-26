@@ -237,11 +237,7 @@ export default function HomePage() {
             {/* Trust row */}
             <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
               {t.trust.map((item, idx) => (
-                <TrustCard
-                  key={idx}
-                  title={item.title}
-                  body={item.body}
-                />
+                <TrustCard key={idx} title={item.title} body={item.body} />
               ))}
             </div>
           </div>
@@ -252,9 +248,9 @@ export default function HomePage() {
               <div className="flex items-center gap-4">
                 {/* Logo badge inside card */}
                 <div className="h-20 w-20 rounded-full bg-white ring-1 ring-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center overflow-hidden">
-                  {/* Keeping <img> here as before to avoid next/image config headaches */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/brand/kaishio-logo.png"
+                    src="/brand/kaishiologo.png"
                     alt="Kaishio"
                     className="h-[120px] w-[120px] object-cover scale-[1.55]"
                   />

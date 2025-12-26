@@ -1,4 +1,3 @@
-// src/components/site/SiteHeader.tsx
 "use client";
 
 import Image from "next/image";
@@ -56,7 +55,7 @@ export default function SiteHeader() {
           {/* BIG LOGO BADGE (reads on mobile) */}
           <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-white flex items-center justify-center shadow-xl ring-1 ring-black/10 overflow-hidden">
             <Image
-              src="/brand/kaishio-logo.png"
+              src="/brand/kaishiologo.png"
               alt="Kaishio"
               width={260}
               height={260}
