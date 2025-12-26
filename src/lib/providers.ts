@@ -364,8 +364,9 @@ export type Quote = {
   isWeekend: boolean;
 
   feeUSD: number;
-  customerRate: number; // dest currency per USD after spread
-  receiveAmount: number; // amount in destination currency
+  customerRate: number;   // dest currency per USD after spread
+  receiveAmount: number;  // amount in destination currency
+  brlEstimated: number;   // legacy alias for receiveAmount (used by existing UI)
   etaLabel: string;
 
   spreadPct: number;
@@ -414,6 +415,7 @@ export function buildQuote(args: {
     feeUSD,
     customerRate,
     receiveAmount,
+    brlEstimated: receiveAmount, // keep old field for existing components
     etaLabel,
     spreadPct,
   };

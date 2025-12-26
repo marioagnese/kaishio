@@ -1,4 +1,3 @@
-// src/app/compare/page.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -10,24 +9,140 @@ import {
   type DeliveryMethod,
   type SpeedPreference,
   type Quote,
-  formatUSD,
-  COUNTRIES,
-  COUNTRY_BY_CODE,
   type CountryCode,
+  formatUSD,
 } from "@/lib/providers";
+import { useLanguage, type Language } from "@/contexts/LanguageContext";
 
-const DEFAULT_COUNTRY: CountryCode = "BR";
-const DEFAULT_COUNTRY_CONFIG = COUNTRY_BY_CODE[DEFAULT_COUNTRY];
+type CompareCopy = {
+  title: string;
+  subtitle: string;
+  amountLabel: string;
+  amountHintPrefix: string;
+  rateLabel: string;
+  autoFxIdle: string;
+  autoFxLoading: string;
+  autoFxHintDefault: string;
+  methodLabel: string;
+  prefLabel: string;
+  prefBalanced: string;
+  prefCheapest: string;
+  prefFastest: string;
+  weekendCheckbox: string;
+  disclaimer: string;
+  emptyState: string;
+};
+
+const COMPARE_COPY: Record<Language, CompareCopy> = {
+  en: {
+    title: "Compare providers (US → Brazil)",
+    subtitle:
+      "Enter the amount, choose method and see which option gives you the most BRL (estimate).",
+    amountLabel: "Amount in USD",
+    amountHintPrefix: "You send:",
+    rateLabel: "FX rate (USD → BRL)",
+    autoFxIdle: "Auto FX",
+    autoFxLoading: "Fetching...",
+    autoFxHintDefault: "Tip: use Auto FX to grab today's rate.",
+    methodLabel: "Method",
+    prefLabel: "Preference",
+    prefBalanced: "Balanced",
+    prefCheapest: "More money",
+    prefFastest: "Faster",
+    weekendCheckbox: "Consider weekend (higher spread)",
+    disclaimer:
+      "Notice: Kaishio is informational only. Final values can change based on promotions, user verification, timing, and method.",
+    emptyState: "No providers available for the selected method.",
+  },
+  pt: {
+    title: "Comparar provedores (EUA → Brasil)",
+    subtitle:
+      "Insira o valor, escolha o método e veja qual opção entrega mais BRL (estimativa).",
+    amountLabel: "Valor em USD",
+    amountHintPrefix: "Você envia:",
+    rateLabel: "Câmbio (USD → BRL)",
+    autoFxIdle: "Auto FX",
+    autoFxLoading: "Buscando...",
+    autoFxHintDefault: "Dica: use Auto FX para pegar o câmbio do dia.",
+    methodLabel: "Método",
+    prefLabel: "Preferência",
+    prefBalanced: "Equilíbrio",
+    prefCheapest: "Mais dinheiro",
+    prefFastest: "Mais rápido",
+    weekendCheckbox: "Considerar fim de semana (spread maior)",
+    disclaimer:
+      "Aviso: Kaishio é informativo. Valores finais variam por promoções, verificação do usuário, horário e método.",
+    emptyState: "Nenhum provedor disponível para o método selecionado.",
+  },
+  es: {
+    title: "Comparar proveedores (EE. UU. → Brasil)",
+    subtitle:
+      "Ingresa el monto, elige el método y ve qué opción entrega más BRL (estimado).",
+    amountLabel: "Monto en USD",
+    amountHintPrefix: "Envías:",
+    rateLabel: "Tipo de cambio (USD → BRL)",
+    autoFxIdle: "Auto FX",
+    autoFxLoading: "Buscando...",
+    autoFxHintDefault:
+      "Tip: usa Auto FX para tomar el tipo de cambio del día.",
+    methodLabel: "Método",
+    prefLabel: "Preferencia",
+    prefBalanced: "Equilibrado",
+    prefCheapest: "Más dinero",
+    prefFastest: "Más rápido",
+    weekendCheckbox: "Considerar fin de semana (spread mayor)",
+    disclaimer:
+      "Aviso: Kaishio es solo informativo. Los valores finales cambian según promociones, verificación del usuario, horario y método.",
+    emptyState: "No hay proveedores para el método seleccionado.",
+  },
+};
+
+const BEST_REASON_COPY: Record<
+  Language,
+  {
+    spread: string;
+    fee: string;
+    speed: string;
+    combo: string;
+    generic: string;
+  }
+> = {
+  en: {
+    spread: "Lower FX spread (better exchange rate).",
+    fee: "Lower total fees (you lose less in fees).",
+    speed: "Faster delivery with good overall cost.",
+    combo: "Best combination of fee + FX right now.",
+    generic: "Best overall cost–benefit based on estimates.",
+  },
+  pt: {
+    spread: "Menor spread no câmbio (custo real menor).",
+    fee: "Taxa total menor (você perde menos em fees).",
+    speed: "Entrega mais rápida com bom custo-benefício.",
+    combo: "Melhor combinação de taxa + câmbio hoje.",
+    generic: "Melhor custo-benefício geral com base nas estimativas.",
+  },
+  es: {
+    spread: "Menor spread en el tipo de cambio (mejor tasa).",
+    fee: "Comisiones totales más bajas (pierdes menos en fees).",
+    speed: "Entrega más rápida con buen costo–beneficio.",
+    combo: "Mejor combinación de comisión + tipo de cambio hoy.",
+    generic:
+      "Mejor relación costo–beneficio general según las estimaciones.",
+  },
+};
 
 export default function ComparePage() {
-  const [country, setCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const { lang } = useLanguage();
+  const t = COMPARE_COPY[lang];
+
   const [usdAmount, setUsdAmount] = useState<number>(500);
-  const [midRate, setMidRate] = useState<number>(
-    DEFAULT_COUNTRY_CONFIG.defaultMidRate
-  );
+  const [midRate, setMidRate] = useState<number>(5.3);
   const [isWeekend, setIsWeekend] = useState<boolean>(false);
   const [method, setMethod] = useState<DeliveryMethod>("bank");
   const [pref, setPref] = useState<SpeedPreference>("balanced");
+
+  // Temporary: default to Brazil until multi-country selector is wired.
+  const [countryCode] = useState<CountryCode>("BR");
 
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
@@ -38,7 +153,7 @@ export default function ComparePage() {
     for (const p of PROVIDERS) {
       const q = buildQuote({
         provider: p,
-        countryCode: country,
+        countryCode,
         method,
         usdAmount,
         midRate,
@@ -47,11 +162,12 @@ export default function ComparePage() {
       if (q) built.push(q);
     }
     return rankQuotes(built, pref);
-  }, [country, method, usdAmount, midRate, isWeekend, pref]);
+  }, [countryCode, method, usdAmount, midRate, isWeekend, pref]);
 
   const best = quotes[0];
   const second = quotes[1];
 
+  // Use receiveAmount from the new Quote type
   const bestSavings = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
@@ -60,19 +176,15 @@ export default function ComparePage() {
 
   const bestReason = useMemo(() => {
     if (!best || !second) return undefined;
-    return computeBestReason(best, second);
-  }, [best, second]);
+    return computeBestReason(best, second, lang);
+  }, [best, second, lang]);
 
   async function handleAutoFx() {
     setFxLoading(true);
     setFxError(null);
 
     try {
-      const cfg = COUNTRY_BY_CODE[country];
-      const res = await fetch(
-        `/api/fx?from=USD&to=${encodeURIComponent(cfg.currencyCode)}`,
-        { cache: "no-store" }
-      );
+      const res = await fetch("/api/fx?from=USD&to=BRL", { cache: "no-store" });
       if (!res.ok) throw new Error("Falha ao buscar câmbio.");
 
       const data: { rate: number; date?: string; provider?: string } =
@@ -93,45 +205,18 @@ export default function ComparePage() {
     }
   }
 
-  const countryConfig = COUNTRY_BY_CODE[country];
-
   return (
     <main className="min-h-screen bg-[#070A12] text-white">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-          Comparar provedores (EUA → {countryConfig.label.pt})
+          {t.title}
         </h1>
-        <p className="mt-2 text-white/70">
-          Insira o valor, escolha o país e o método e veja a melhor opção com
-          estimativa na moeda local.
-        </p>
+        <p className="mt-2 text-white/70">{t.subtitle}</p>
 
         {/* Controls */}
         <div className="mt-8 grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5">
           <div className="grid gap-4 md:grid-cols-4">
-            {/* Country */}
-            <Control label="País de destino">
-              <select
-                value={country}
-                onChange={(e) => {
-                  const next = e.target.value as CountryCode;
-                  setCountry(next);
-                  setFxError(null);
-                  setFxStamp(null);
-                  setMidRate(COUNTRY_BY_CODE[next].defaultMidRate);
-                }}
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
-              >
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label.pt} ({c.currencyCode})
-                  </option>
-                ))}
-              </select>
-            </Control>
-
-            {/* Amount */}
-            <Control label="Valor em USD">
+            <Control label={t.amountLabel}>
               <input
                 type="number"
                 min={1}
@@ -140,14 +225,11 @@ export default function ComparePage() {
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               />
               <div className="mt-1 text-xs text-white/50">
-                Você envia: {formatUSD(usdAmount)}
+                {t.amountHintPrefix} {formatUSD(usdAmount)}
               </div>
             </Control>
 
-            {/* FX */}
-            <Control
-              label={`Câmbio (USD → ${countryConfig.currencyCode})`}
-            >
+            <Control label={t.rateLabel}>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -161,7 +243,7 @@ export default function ComparePage() {
                   disabled={fxLoading}
                   className="rounded-xl bg-white text-black px-4 py-3 text-sm font-semibold hover:bg-white/90 disabled:opacity-60"
                 >
-                  {fxLoading ? "Buscando..." : "Auto FX"}
+                  {fxLoading ? t.autoFxLoading : t.autoFxIdle}
                 </button>
               </div>
               <div className="mt-1 text-xs text-white/55">
@@ -170,31 +252,32 @@ export default function ComparePage() {
                 ) : fxStamp ? (
                   fxStamp
                 ) : (
-                  "Dica: use Auto FX para pegar o câmbio do dia."
+                  t.autoFxHintDefault
                 )}
               </div>
             </Control>
 
-            {/* Method + preference */}
-            <Control label="Método & preferência">
+            <Control label={t.methodLabel}>
               <select
                 value={method}
                 onChange={(e) => setMethod(e.target.value as DeliveryMethod)}
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none mb-2"
+                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
-                <option value="bank">Conta bancária</option>
-                <option value="debit">Cartão/Débito</option>
-                <option value="cash">Cash pickup</option>
+                <option value="bank">{methodLabel("bank", lang)}</option>
+                <option value="debit">{methodLabel("debit", lang)}</option>
+                <option value="cash">{methodLabel("cash", lang)}</option>
               </select>
+            </Control>
 
+            <Control label={t.prefLabel}>
               <select
                 value={pref}
                 onChange={(e) => setPref(e.target.value as SpeedPreference)}
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
-                <option value="balanced">Equilíbrio</option>
-                <option value="cheapest">Mais dinheiro</option>
-                <option value="fastest">Mais rápido</option>
+                <option value="balanced">{t.prefBalanced}</option>
+                <option value="cheapest">{t.prefCheapest}</option>
+                <option value="fastest">{t.prefFastest}</option>
               </select>
 
               <label className="mt-3 flex items-center gap-2 text-sm text-white/70 select-none">
@@ -203,14 +286,13 @@ export default function ComparePage() {
                   checked={isWeekend}
                   onChange={(e) => setIsWeekend(e.target.checked)}
                 />
-                Considerar fim de semana (spread maior)
+                {t.weekendCheckbox}
               </label>
             </Control>
           </div>
 
           <div className="text-xs text-white/55 leading-relaxed">
-            Aviso: Kaishio é informativo. Valores finais variam por promoções,
-            verificação do usuário, horário, método e país de destino.
+            {t.disclaimer}
           </div>
         </div>
 
@@ -218,12 +300,12 @@ export default function ComparePage() {
         <div className="mt-8 grid gap-4">
           {quotes.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
-              Nenhum provedor disponível para a combinação selecionada.
+              {t.emptyState}
             </div>
           ) : (
             quotes.map((q, idx) => (
               <ProviderCard
-                key={`${q.provider.id}-${q.method}-${q.countryCode}`}
+                key={`${q.provider.id}-${q.method}`}
                 quote={q}
                 rank={idx + 1}
                 bestSavings={idx === 0 ? bestSavings : undefined}
@@ -252,23 +334,37 @@ function Control({
   );
 }
 
-/**
- * One-line “why best” logic comparing #1 vs #2.
- */
-function computeBestReason(best: Quote, second: Quote) {
+function methodLabel(m: DeliveryMethod, lang: Language): string {
+  if (lang === "en") {
+    if (m === "bank") return "Bank account";
+    if (m === "debit") return "Card / debit";
+    if (m === "cash") return "Cash pickup";
+  } else if (lang === "pt") {
+    if (m === "bank") return "Conta bancária";
+    if (m === "debit") return "Cartão/Débito";
+    if (m === "cash") return "Cash pickup";
+  } else {
+    // es
+    if (m === "bank") return "Cuenta bancaria";
+    if (m === "debit") return "Tarjeta/Débito";
+    if (m === "cash") return "Retiro en efectivo";
+  }
+  return m;
+}
+
+function computeBestReason(best: Quote, second: Quote, lang: Language): string {
   const spreadDiff = (second.spreadPct - best.spreadPct) * 100;
   const feeDiff = second.feeUSD - best.feeUSD;
   const bestEta = etaMidHours(best);
   const secondEta = etaMidHours(second);
 
-  if (spreadDiff >= 0.3) return "Menor spread no câmbio (custo real menor).";
-  if (feeDiff >= 1.0) return "Taxa total menor (você perde menos em fees).";
-  if (secondEta - bestEta >= 4)
-    return "Entrega mais rápida com bom custo-benefício.";
+  const labels = BEST_REASON_COPY[lang];
 
-  if (spreadDiff > 0 && feeDiff > 0)
-    return "Melhor combinação de taxa + câmbio hoje.";
-  return "Melhor custo-benefício geral com base nas estimativas.";
+  if (spreadDiff >= 0.3) return labels.spread;
+  if (feeDiff >= 1.0) return labels.fee;
+  if (secondEta - bestEta >= 4) return labels.speed;
+  if (spreadDiff > 0 && feeDiff > 0) return labels.combo;
+  return labels.generic;
 }
 
 function etaMidHours(q: Quote) {
