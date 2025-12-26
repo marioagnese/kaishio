@@ -1,10 +1,8 @@
-// src/contexts/LanguageContext.tsx
 "use client";
 
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -16,24 +14,26 @@ type LanguageContextValue = {
   setLang: (lang: Language) => void;
 };
 
-const LanguageContext = createContext<LanguageContextValue | null>(null);
+const LanguageContext = createContext<LanguageContextValue | undefined>(
+  undefined
+);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>("en");
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("kaishio-lang");
-    if (stored === "en" || stored === "pt" || stored === "es") {
-      setLangState(stored);
-    }
-  }, []);
-
-  const setLang = (next: Language) => {
-    setLangState(next);
+  // Initialize from localStorage once (client-side), no effect + setState needed
+  const [lang, setLangState] = useState<Language>(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("kaishio-lang", next);
+      const stored = window.localStorage.getItem("kaishio-lang");
+      if (stored === "en" || stored === "pt" || stored === "es") {
+        return stored;
+      }
+    }
+    return "en";
+  });
+
+  const setLang = (value: Language) => {
+    setLangState(value);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("kaishio-lang", value);
     }
   };
 
@@ -44,10 +44,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useLanguage() {
+export function useLanguage(): LanguageContextValue {
   const ctx = useContext(LanguageContext);
   if (!ctx) {
-    throw new Error("useLanguage must be used within LanguageProvider");
+    throw new Error(
+      "useLanguage must be used within a LanguageProvider"
+    );
   }
   return ctx;
 }
