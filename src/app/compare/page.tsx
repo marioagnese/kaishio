@@ -1,10 +1,12 @@
 // src/app/compare/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ProviderCard from "@/components/compare/ProviderCard";
 import {
   PROVIDERS,
+  COUNTRIES,
+  COUNTRY_BY_CODE,
   buildQuote,
   rankQuotes,
   type DeliveryMethod,
@@ -18,6 +20,7 @@ import { useLanguage, type Language } from "@/contexts/LanguageContext";
 type CompareCopy = {
   title: string;
   subtitle: string;
+  countryLabel: string;
   amountLabel: string;
   amountHintPrefix: string;
   rateLabel: string;
@@ -38,7 +41,8 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
   en: {
     title: "Compare providers (US → Latin America)",
     subtitle:
-      "Enter the amount, choose method and see which option gives you the most (estimated) in local currency.",
+      "Choose the country, enter the amount, pick a method and see which option gives you more in local currency (estimate).",
+    countryLabel: "Destination country",
     amountLabel: "Amount in USD",
     amountHintPrefix: "You send:",
     rateLabel: "FX rate (USD → local currency)",
@@ -58,7 +62,8 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
   pt: {
     title: "Comparar provedores (EUA → América Latina)",
     subtitle:
-      "Insira o valor, escolha o método e veja qual opção entrega mais dinheiro em moeda local (estimativa).",
+      "Escolha o país, insira o valor, escolha o método e veja qual opção entrega mais dinheiro em moeda local (estimativa).",
+    countryLabel: "País de destino",
     amountLabel: "Valor em USD",
     amountHintPrefix: "Você envia:",
     rateLabel: "Câmbio (USD → moeda local)",
@@ -78,7 +83,8 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
   es: {
     title: "Comparar proveedores (EE. UU. → América Latina)",
     subtitle:
-      "Ingresa el monto, elige el método y ve qué opción entrega más dinero en moneda local (estimado).",
+      "Elige el país, ingresa el monto, selecciona el método y ve qué opción entrega más dinero en moneda local (estimado).",
+    countryLabel: "País de destino",
     amountLabel: "Monto en USD",
     amountHintPrefix: "Envías:",
     rateLabel: "Tipo de cambio (USD → moneda local)",
@@ -136,18 +142,27 @@ export default function ComparePage() {
   const { lang } = useLanguage();
   const t = COMPARE_COPY[lang];
 
+  const [countryCode, setCountryCode] = useState<CountryCode>("BR");
   const [usdAmount, setUsdAmount] = useState<number>(500);
-  const [midRate, setMidRate] = useState<number>(5.3);
+  const [midRate, setMidRate] = useState<number>(
+    COUNTRY_BY_CODE["BR"].defaultMidRate
+  );
   const [isWeekend, setIsWeekend] = useState<boolean>(false);
   const [method, setMethod] = useState<DeliveryMethod>("bank");
   const [pref, setPref] = useState<SpeedPreference>("balanced");
 
-  // Temporary: default to Brazil until multi-country selector is fully wired.
-  const [countryCode] = useState<CountryCode>("BR");
-
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
   const [fxStamp, setFxStamp] = useState<string | null>(null);
+
+  const country = COUNTRY_BY_CODE[countryCode];
+
+  // When country changes, reset FX rate to that corridor's default hint
+  useEffect(() => {
+    setMidRate(country.defaultMidRate);
+    setFxStamp(null);
+    setFxError(null);
+  }, [countryCode]);
 
   const quotes = useMemo(() => {
     const built: Quote[] = [];
@@ -168,7 +183,7 @@ export default function ComparePage() {
   const best = quotes[0];
   const second = quotes[1];
 
-  // Savings in destination currency (receiveAmount), not USD
+  // Savings in destination currency (receiveAmount)
   const bestSavingsBRL = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
@@ -185,8 +200,11 @@ export default function ComparePage() {
     setFxError(null);
 
     try {
-      // For now, API is still USD→BRL. Later we parameterize by country.
-      const res = await fetch("/api/fx?from=USD&to=BRL", { cache: "no-store" });
+      const targetCurrency = country.currencyCode;
+      const res = await fetch(
+        `/api/fx?from=USD&to=${encodeURIComponent(targetCurrency)}`,
+        { cache: "no-store" }
+      );
       if (!res.ok) throw new Error("Falha ao buscar câmbio.");
 
       const data: { rate: number; date?: string; provider?: string } =
@@ -197,7 +215,16 @@ export default function ComparePage() {
       }
 
       setMidRate(data.rate);
-      setFxStamp(`${data.provider ?? "FX"} • ${data.date ?? "hoje"}`);
+
+      const labelByLang: Record<Language, string> = {
+        en: "today",
+        pt: "hoje",
+        es: "hoy",
+      };
+
+      setFxStamp(
+        `${data.provider ?? "FX"} • ${data.date ?? labelByLang[lang]}`
+      );
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro ao buscar câmbio.";
@@ -217,7 +244,23 @@ export default function ComparePage() {
 
         {/* Controls */}
         <div className="mt-8 grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
+            <Control label={t.countryLabel}>
+              <select
+                value={countryCode}
+                onChange={(e) =>
+                  setCountryCode(e.target.value as CountryCode)
+                }
+                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+              >
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label[lang]} ({c.currencyCode})
+                  </option>
+                ))}
+              </select>
+            </Control>
+
             <Control label={t.amountLabel}>
               <input
                 type="number"
@@ -262,7 +305,9 @@ export default function ComparePage() {
             <Control label={t.methodLabel}>
               <select
                 value={method}
-                onChange={(e) => setMethod(e.target.value as DeliveryMethod)}
+                onChange={(e) =>
+                  setMethod(e.target.value as DeliveryMethod)
+                }
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
                 <option value="bank">{methodLabel("bank", lang)}</option>
@@ -274,7 +319,9 @@ export default function ComparePage() {
             <Control label={t.prefLabel}>
               <select
                 value={pref}
-                onChange={(e) => setPref(e.target.value as SpeedPreference)}
+                onChange={(e) =>
+                  setPref(e.target.value as SpeedPreference)
+                }
                 className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
                 <option value="balanced">{t.prefBalanced}</option>
