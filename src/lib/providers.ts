@@ -9,7 +9,12 @@ export type ProviderId =
   | "xoom"
   | "paypal"
   | "western_union"
-  | "moneygram";
+  | "moneygram"
+  | "taptapsend"; // NEW
+
+// Later: extend here with regional / local players (e.g. "remessa_online", "nubank_fx", etc.)
+
+export type ProviderStatus = "global" | "regional" | "experimental";
 
 export type ProviderColor = {
   border: string;
@@ -47,6 +52,11 @@ export type Provider = {
     debit: { min: number; max: number };
     cash: { min: number; max: number };
   };
+
+  // Phase-2: trust & transparency metadata
+  status: ProviderStatus;
+  reliabilityScore: number; // 0–100 (historical robustness / brand / scale)
+  transparencyScore: number; // 0–100 (how clearly they show fees + FX)
 };
 
 export const PROVIDERS: Provider[] = [
@@ -73,6 +83,9 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.25, max: 2 },
       cash: { min: 0, max: 0 },
     },
+    status: "global",
+    reliabilityScore: 92,
+    transparencyScore: 95,
   },
   {
     id: "remitly",
@@ -97,6 +110,9 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.1, max: 2 },
       cash: { min: 0.1, max: 1 },
     },
+    status: "global",
+    reliabilityScore: 88,
+    transparencyScore: 85,
   },
   {
     id: "xoom",
@@ -121,6 +137,9 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.25, max: 4 },
       cash: { min: 0.1, max: 1 },
     },
+    status: "global",
+    reliabilityScore: 86,
+    transparencyScore: 78,
   },
   {
     id: "paypal",
@@ -145,6 +164,9 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.1, max: 2 },
       cash: { min: 0, max: 0 },
     },
+    status: "global",
+    reliabilityScore: 88,
+    transparencyScore: 70,
   },
   {
     id: "western_union",
@@ -169,6 +191,9 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.25, max: 6 },
       cash: { min: 0.1, max: 1 },
     },
+    status: "global",
+    reliabilityScore: 90,
+    transparencyScore: 68,
   },
   {
     id: "moneygram",
@@ -193,6 +218,37 @@ export const PROVIDERS: Provider[] = [
       debit: { min: 0.25, max: 6 },
       cash: { min: 0.1, max: 1 },
     },
+    status: "global",
+    reliabilityScore: 87,
+    transparencyScore: 70,
+  },
+  {
+    id: "taptapsend",
+    name: "TapTap Send",
+    tagline: "Mobile-first remittances",
+    methods: ["bank", "cash"], // treating wallet/agent-style payouts as 'cash'
+    link: "https://www.taptapsend.com/",
+    color: {
+      border: "border-emerald-300/40",
+      bg: "bg-emerald-300/8",
+      glow: "shadow-[0_0_0_1px_rgba(110,231,183,0.22)]",
+      badge: "bg-emerald-300/20 text-emerald-100",
+    },
+    feeUSD: {
+      // MVP assumptions, can refine later
+      bank: { fixed: 0, pct: 0.006 },
+      debit: { fixed: 0, pct: 0.006 },
+      cash: { fixed: 1.99, pct: 0.008 },
+    },
+    spread: { weekday: 0.008, weekend: 0.012 },
+    etaHours: {
+      bank: { min: 0.25, max: 24 },
+      debit: { min: 0.25, max: 24 },
+      cash: { min: 0.1, max: 2 },
+    },
+    status: "regional",
+    reliabilityScore: 82,
+    transparencyScore: 82,
   },
 ];
 
@@ -227,6 +283,7 @@ export const COUNTRIES: CountryConfig[] = [
     currencySymbol: "R$",
     defaultMidRate: 5.3,
     providers: ["wise", "remitly", "xoom", "paypal", "western_union", "moneygram"],
+    // When you confirm which corridors TapTap Send supports, add "taptapsend" here if relevant.
   },
   {
     code: "MX",
@@ -364,9 +421,8 @@ export type Quote = {
   isWeekend: boolean;
 
   feeUSD: number;
-  customerRate: number;   // dest currency per USD after spread
-  receiveAmount: number;  // amount in destination currency
-  brlEstimated: number;   // legacy alias for receiveAmount (used by existing UI)
+  customerRate: number; // dest currency per USD after spread
+  receiveAmount: number; // amount in destination currency
   etaLabel: string;
 
   spreadPct: number;
@@ -415,7 +471,6 @@ export function buildQuote(args: {
     feeUSD,
     customerRate,
     receiveAmount,
-    brlEstimated: receiveAmount, // keep old field for existing components
     etaLabel,
     spreadPct,
   };
@@ -439,16 +494,27 @@ export function rankQuotes(quotes: Quote[], pref: SpeedPreference) {
     return copy;
   }
 
-  // balanced: normalize cost and speed
+  // balanced: normalize cost, speed, reliability, transparency
   const maxAmt = Math.max(...copy.map((q) => q.receiveAmount));
   const minAmt = Math.min(...copy.map((q) => q.receiveAmount));
   const maxEta = Math.max(...copy.map((q) => etaMidHours(q)));
   const minEta = Math.min(...copy.map((q) => etaMidHours(q)));
 
   const score = (q: Quote) => {
-    const amtNorm = maxAmt === minAmt ? 1 : (q.receiveAmount - minAmt) / (maxAmt - minAmt);
-    const etaNorm = maxEta === minEta ? 1 : 1 - (etaMidHours(q) - minEta) / (maxEta - minEta);
-    return amtNorm * 0.65 + etaNorm * 0.35;
+    const amtNorm =
+      maxAmt === minAmt ? 1 : (q.receiveAmount - minAmt) / (maxAmt - minAmt);
+    const etaNorm =
+      maxEta === minEta ? 1 : 1 - (etaMidHours(q) - minEta) / (maxEta - minEta);
+    const reliabilityNorm = q.provider.reliabilityScore / 100;
+    const transparencyNorm = q.provider.transparencyScore / 100;
+
+    // Final balanced score
+    return (
+      amtNorm * 0.4 + // cost
+      etaNorm * 0.25 + // speed
+      reliabilityNorm * 0.2 + // robustness
+      transparencyNorm * 0.15 // clarity
+    );
   };
 
   copy.sort((a, b) => score(b) - score(a));
