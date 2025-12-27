@@ -1,67 +1,133 @@
+// src/components/compare/ProviderCard.tsx
 "use client";
 
-import { useLanguage, type Language } from "@/contexts/LanguageContext";
-import type { Quote, DeliveryMethod } from "@/lib/providers";
+import Link from "next/link";
 import {
   formatUSD,
   formatDestCurrency,
   COUNTRY_BY_CODE,
+  type Quote,
+  type DeliveryMethod,
+  type ProviderId,
 } from "@/lib/providers";
+import { useLanguage, type Language } from "@/contexts/LanguageContext";
 
 type CardCopy = {
-  topBadge: string;
-  altBadge: string;
+  bestBadge: string;
+  optionPrefix: string;
+  transferLabel: (methodLabel: string, countryName: string) => string;
+
   youSend: string;
   fees: string;
-  rateApplied: string;
+  rateAfterSpread: string;
   youReceive: (currencyCode: string) => string;
-  eta: string;
-  savingsLabel: (currencyCode: string) => string;
-  seeProvider: string;
+  deliveryTime: string;
+  extraVsSecondPrefix: (currencyCode: string) => string;
+
+  openSite: string;
 };
 
 const CARD_COPY: Record<Language, CardCopy> = {
   en: {
-    topBadge: "Best match",
-    altBadge: "Option",
-    youSend: "You send (USD)",
-    fees: "Estimated fees",
-    rateApplied: "FX rate after spread",
-    youReceive: (cc) => `You receive (est., ${cc})`,
-    eta: "Delivery time",
-    savingsLabel: (cc) => `Est. extra vs #2 (${cc})`,
-    seeProvider: "Open provider site",
+    bestBadge: "Best match",
+    optionPrefix: "Option #",
+    transferLabel: (methodLabel, countryName) =>
+      `${methodLabel}\n${countryName}`,
+    youSend: "YOU SEND (USD)",
+    fees: "ESTIMATED FEES",
+    rateAfterSpread: "FX RATE AFTER SPREAD",
+    youReceive: (ccy) => `YOU RECEIVE (EST., ${ccy})`,
+    deliveryTime: "Delivery time",
+    extraVsSecondPrefix: (ccy) => `Est. extra vs #2 (${ccy})`,
+    openSite: "Open provider site",
   },
   pt: {
-    topBadge: "Melhor opção",
-    altBadge: "Opção",
-    youSend: "Você envia (USD)",
-    fees: "Taxas estimadas",
-    rateApplied: "Câmbio após spread",
-    youReceive: (cc) => `Você recebe (est., ${cc})`,
-    eta: "Prazo estimado",
-    savingsLabel: (cc) => `Estimativa a mais vs #2 (${cc})`,
-    seeProvider: "Abrir site do provedor",
+    bestBadge: "Melhor opção",
+    optionPrefix: "Opção #",
+    transferLabel: (methodLabel, countryName) =>
+      `${methodLabel}\n${countryName}`,
+    youSend: "VOCÊ ENVIA (USD)",
+    fees: "TAXAS ESTIMADAS",
+    rateAfterSpread: "CÂMBIO APÓS SPREAD",
+    youReceive: (ccy) => `VOCÊ RECEBE (EST., ${ccy})`,
+    deliveryTime: "Tempo de entrega",
+    extraVsSecondPrefix: (ccy) => `Aprox. extra vs #2 (${ccy})`,
+    openSite: "Abrir site do provedor",
   },
   es: {
-    topBadge: "Mejor opción",
-    altBadge: "Opción",
-    youSend: "Envías (USD)",
-    fees: "Comisiones estimadas",
-    rateApplied: "Tipo de cambio tras el spread",
-    youReceive: (cc) => `Recibes (est., ${cc})`,
-    eta: "Tiempo de entrega",
-    savingsLabel: (cc) => `Aprox. extra vs #2 (${cc})`,
-    seeProvider: "Abrir sitio del proveedor",
+    bestBadge: "Mejor opción",
+    optionPrefix: "Opción #",
+    transferLabel: (methodLabel, countryName) =>
+      `${methodLabel}\n${countryName}`,
+    youSend: "ENVÍAS (USD)",
+    fees: "COMISIONES ESTIMADAS",
+    rateAfterSpread: "TIPO DE CAMBIO TRAS EL SPREAD",
+    youReceive: (ccy) => `RECIBES (EST., ${ccy})`,
+    deliveryTime: "Tiempo de entrega",
+    extraVsSecondPrefix: (ccy) => `Aprox. extra vs #2 (${ccy})`,
+    openSite: "Abrir sitio del proveedor",
   },
 };
+
+// Provider taglines per language
+const PROVIDER_TAGLINES: Record<
+  ProviderId,
+  Record<Language, string>
+> = {
+  wise: {
+    en: "Usually great FX rates",
+    pt: "Geralmente ótimo em câmbio",
+    es: "Generalmente muy bueno en tipo de cambio",
+  },
+  remitly: {
+    en: "Good speed and options",
+    pt: "Boa velocidade e opções",
+    es: "Buena velocidad y opciones",
+  },
+  xoom: {
+    en: "PayPal network + cash pickup",
+    pt: "Rede PayPal + retirada em espécie",
+    es: "Red PayPal + retiro en efectivo",
+  },
+  paypal: {
+    en: "Convenient (can cost more)",
+    pt: "Conveniência (pode sair mais caro)",
+    es: "Conveniente (puede costar más)",
+  },
+  western_union: {
+    en: "Very strong for cash pickup",
+    pt: "Muito forte em retirada em espécie",
+    es: "Muy fuerte en retiro en efectivo",
+  },
+  moneygram: {
+    en: "Popular alternative for cash",
+    pt: "Alternativa popular para cash",
+    es: "Alternativa popular para efectivo",
+  },
+};
+
+function methodHeaderLabel(method: DeliveryMethod, lang: Language): string {
+  if (lang === "en") {
+    if (method === "bank") return "Bank transfer";
+    if (method === "debit") return "Card transfer";
+    if (method === "cash") return "Cash pickup";
+  } else if (lang === "pt") {
+    if (method === "bank") return "Transferência bancária";
+    if (method === "debit") return "Transferência via cartão";
+    if (method === "cash") return "Retirada em espécie";
+  } else {
+    // es
+    if (method === "bank") return "Transferencia bancaria";
+    if (method === "debit") return "Transferencia con tarjeta";
+    if (method === "cash") return "Retiro en efectivo";
+  }
+  return "";
+}
 
 type Props = {
   quote: Quote;
   rank: number;
   bestSavings?: number;
-  // Backwards compatibility in case ComparePage is still using this name
-  bestSavingsBRL?: number;
   bestReason?: string;
 };
 
@@ -69,154 +135,138 @@ export default function ProviderCard({
   quote,
   rank,
   bestSavings,
-  bestSavingsBRL,
   bestReason,
 }: Props) {
   const { lang } = useLanguage();
-  const t = CARD_COPY[lang];
-
-  const savings = bestSavings ?? bestSavingsBRL;
+  const copy = CARD_COPY[lang];
 
   const country = COUNTRY_BY_CODE[quote.countryCode];
   const currencyCode = country.currencyCode;
+  const countryName = country.label[lang];
 
-  const badgeLabel = rank === 1 ? t.topBadge : `${t.altBadge} #${rank}`;
-  const isTop = rank === 1;
+  const providerId = quote.provider.id as ProviderId;
+  const tagline =
+    PROVIDER_TAGLINES[providerId]?.[lang] ?? quote.provider.tagline;
+
+  const isBest = rank === 1;
 
   return (
-    <div
+    <section
       className={[
-        "rounded-3xl border bg-white/5 p-5 md:p-6",
-        "flex flex-col gap-4 md:gap-5",
-        quote.provider.color.border,
-        quote.provider.color.bg,
-        quote.provider.color.glow,
+        "rounded-3xl border p-5 sm:p-6 bg-black/40",
+        isBest
+          ? "border-emerald-400/60 shadow-[0_0_0_1px_rgba(52,211,153,0.4)]"
+          : "border-white/10",
       ].join(" ")}
     >
       {/* Header row */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-3 py-1 text-xs text-white/80">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            {badgeLabel}
+          <div className="inline-flex items-center gap-2 mb-2">
+            <span
+              className={[
+                "rounded-full px-3 py-1 text-xs font-semibold",
+                isBest
+                  ? "bg-emerald-500/15 text-emerald-200 border border-emerald-400/40"
+                  : "bg-white/10 text-white/70 border border-white/20",
+              ].join(" ")}
+            >
+              {isBest
+                ? copy.bestBadge
+                : `${copy.optionPrefix}${rank.toString()}`}
+            </span>
           </div>
-          <div className="mt-3 text-lg font-semibold flex items-center gap-2">
-            {quote.provider.name}
-          </div>
-          <div className="text-sm text-white/70">{quote.provider.tagline}</div>
 
-          {isTop && bestReason && (
-            <div className="mt-2 text-xs text-emerald-200/90">
-              {bestReason}
-            </div>
+          <h2 className="text-lg font-semibold">{quote.provider.name}</h2>
+          <p className="text-sm text-white/70">{tagline}</p>
+          {bestReason && (
+            <p className="text-xs text-emerald-200 mt-1">{bestReason}</p>
           )}
         </div>
 
-        <div className="text-right text-xs text-white/60">
-          <div className="font-semibold uppercase tracking-wide text-white/75">
-            {methodLabel(quote.method, lang)}
+        <div className="text-right text-xs text-white/70 whitespace-pre-line">
+          <div className="font-semibold text-sm text-white">
+            {methodHeaderLabel(quote.method, lang)}
           </div>
-          <div className="mt-1">{country.label[lang]}</div>
+          <div>{countryName}</div>
         </div>
       </div>
 
-      {/* Numbers grid */}
-      <div className="grid gap-4 sm:grid-cols-4 text-sm">
-        <InfoBlock
-          label={t.youSend}
+      {/* Main stats grid */}
+      <div className="grid gap-4 sm:grid-cols-4 text-xs sm:text-sm">
+        <StatBox
+          label={copy.youSend}
           value={formatUSD(quote.usdAmount)}
         />
-        <InfoBlock
-          label={t.fees}
+
+        <StatBox
+          label={copy.fees}
           value={formatUSD(quote.feeUSD)}
         />
-        <InfoBlock
-          label={t.rateApplied}
+
+        <StatBox
+          label={copy.rateAfterSpread}
           value={quote.customerRate.toFixed(4)}
         />
-        <InfoBlock
-          label={t.youReceive(currencyCode)}
-          value={formatDestCurrency(quote.receiveAmount, currencyCode)}
+
+        <StatBox
+          label={copy.youReceive(currencyCode)}
+          value={formatDestCurrency(
+            quote.receiveAmount,
+            currencyCode
+          )}
         />
       </div>
 
-      {/* Bottom row: ETA, savings, CTA */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap gap-3">
-          <Pill label={t.eta} value={quote.etaLabel} />
-          {typeof savings === "number" && savings > 0 && (
-            <Pill
-              label={t.savingsLabel(currencyCode)}
-              value={formatDestCurrency(savings, currencyCode)}
-              variant="positive"
-            />
+      {/* Bottom row: delivery + savings + button */}
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-white/80">
+            {copy.deliveryTime}{" "}
+            <span className="font-semibold">
+              {quote.etaLabel}
+            </span>
+          </span>
+
+          {isBest && typeof bestSavings === "number" && bestSavings > 0 && (
+            <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-emerald-100">
+              {copy.extraVsSecondPrefix(currencyCode)}{" "}
+              <span className="font-semibold">
+                {formatDestCurrency(bestSavings, currencyCode)}
+              </span>
+            </span>
           )}
         </div>
 
         <div className="flex justify-end">
-          <a
+          <Link
             href={quote.provider.link}
             target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-full bg-white text-black px-4 py-2 font-semibold text-xs hover:bg-white/90 transition"
+            className="rounded-full bg-white text-black px-5 py-2 text-xs sm:text-sm font-semibold hover:bg-white/90 transition"
           >
-            {t.seeProvider}
-          </a>
+            {copy.openSite}
+          </Link>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-function InfoBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-black/30 border border-white/10 p-3">
-      <div className="text-[0.7rem] uppercase tracking-wide text-white/55 mb-1">
-        {label}
-      </div>
-      <div className="text-sm font-semibold text-white">{value}</div>
-    </div>
-  );
-}
-
-function Pill({
+function StatBox({
   label,
   value,
-  variant = "default",
 }: {
   label: string;
   value: string;
-  variant?: "default" | "positive";
 }) {
-  const base =
-    "inline-flex items-center gap-2 rounded-full px-3 py-1.5 border text-[0.7rem]";
-  const styles =
-    variant === "positive"
-      ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
-      : "border-white/20 bg-black/30 text-white/75";
-
   return (
-    <div className={`${base} ${styles}`}>
-      <span className="opacity-70">{label}</span>
-      <span className="font-semibold">{value}</span>
+    <div className="rounded-2xl border border-white/12 bg-white/5 px-4 py-3">
+      <div className="text-[10px] sm:text-xs text-white/60 mb-1">
+        {label}
+      </div>
+      <div className="text-sm sm:text-base font-semibold">
+        {value}
+      </div>
     </div>
   );
-}
-
-function methodLabel(m: DeliveryMethod, lang: Language): string {
-  if (lang === "en") {
-    if (m === "bank") return "Bank transfer";
-    if (m === "debit") return "Card / debit";
-    if (m === "cash") return "Cash pickup";
-  } else if (lang === "pt") {
-    if (m === "bank") return "Transferência bancária";
-    if (m === "debit") return "Cartão / débito";
-    if (m === "cash") return "Retirada em dinheiro";
-  } else {
-    // es
-    if (m === "bank") return "Transferencia bancaria";
-    if (m === "debit") return "Tarjeta / débito";
-    if (m === "cash") return "Retiro en efectivo";
-  }
-  return m;
 }
