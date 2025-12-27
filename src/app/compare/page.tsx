@@ -1,3 +1,4 @@
+// src/app/compare/page.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -35,15 +36,15 @@ type CompareCopy = {
 
 const COMPARE_COPY: Record<Language, CompareCopy> = {
   en: {
-    title: "Compare providers (US → Brazil)",
+    title: "Compare providers (US → Latin America)",
     subtitle:
-      "Enter the amount, choose method and see which option gives you the most BRL (estimate).",
+      "Enter the amount, choose method and see which option gives you the most (estimated) in local currency.",
     amountLabel: "Amount in USD",
     amountHintPrefix: "You send:",
-    rateLabel: "FX rate (USD → BRL)",
+    rateLabel: "FX rate (USD → local currency)",
     autoFxIdle: "Auto FX",
     autoFxLoading: "Fetching...",
-    autoFxHintDefault: "Tip: use Auto FX to grab today's rate.",
+    autoFxHintDefault: "Tip: use Auto FX to grab today’s rate.",
     methodLabel: "Method",
     prefLabel: "Preference",
     prefBalanced: "Balanced",
@@ -55,12 +56,12 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
     emptyState: "No providers available for the selected method.",
   },
   pt: {
-    title: "Comparar provedores (EUA → Brasil)",
+    title: "Comparar provedores (EUA → América Latina)",
     subtitle:
-      "Insira o valor, escolha o método e veja qual opção entrega mais BRL (estimativa).",
+      "Insira o valor, escolha o método e veja qual opção entrega mais dinheiro em moeda local (estimativa).",
     amountLabel: "Valor em USD",
     amountHintPrefix: "Você envia:",
-    rateLabel: "Câmbio (USD → BRL)",
+    rateLabel: "Câmbio (USD → moeda local)",
     autoFxIdle: "Auto FX",
     autoFxLoading: "Buscando...",
     autoFxHintDefault: "Dica: use Auto FX para pegar o câmbio do dia.",
@@ -75,12 +76,12 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
     emptyState: "Nenhum provedor disponível para o método selecionado.",
   },
   es: {
-    title: "Comparar proveedores (EE. UU. → Brasil)",
+    title: "Comparar proveedores (EE. UU. → América Latina)",
     subtitle:
-      "Ingresa el monto, elige el método y ve qué opción entrega más BRL (estimado).",
+      "Ingresa el monto, elige el método y ve qué opción entrega más dinero en moneda local (estimado).",
     amountLabel: "Monto en USD",
     amountHintPrefix: "Envías:",
-    rateLabel: "Tipo de cambio (USD → BRL)",
+    rateLabel: "Tipo de cambio (USD → moneda local)",
     autoFxIdle: "Auto FX",
     autoFxLoading: "Buscando...",
     autoFxHintDefault:
@@ -141,7 +142,7 @@ export default function ComparePage() {
   const [method, setMethod] = useState<DeliveryMethod>("bank");
   const [pref, setPref] = useState<SpeedPreference>("balanced");
 
-  // Temporary: default to Brazil until multi-country selector is wired.
+  // Temporary: default to Brazil until multi-country selector is fully wired.
   const [countryCode] = useState<CountryCode>("BR");
 
   const [fxLoading, setFxLoading] = useState(false);
@@ -167,8 +168,8 @@ export default function ComparePage() {
   const best = quotes[0];
   const second = quotes[1];
 
-  // Use receiveAmount from the new Quote type
-  const bestSavings = useMemo(() => {
+  // Savings in destination currency (receiveAmount), not USD
+  const bestSavingsBRL = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
     return diff > 0 ? diff : 0;
@@ -184,6 +185,7 @@ export default function ComparePage() {
     setFxError(null);
 
     try {
+      // For now, API is still USD→BRL. Later we parameterize by country.
       const res = await fetch("/api/fx?from=USD&to=BRL", { cache: "no-store" });
       if (!res.ok) throw new Error("Falha ao buscar câmbio.");
 
@@ -308,7 +310,7 @@ export default function ComparePage() {
                 key={`${q.provider.id}-${q.method}`}
                 quote={q}
                 rank={idx + 1}
-                bestSavings={idx === 0 ? bestSavings : undefined}
+                bestSavingsBRL={idx === 0 ? bestSavingsBRL : undefined}
                 bestReason={idx === 0 ? bestReason : undefined}
               />
             ))
