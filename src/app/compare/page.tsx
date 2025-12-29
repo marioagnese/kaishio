@@ -1,8 +1,9 @@
 // src/app/compare/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProviderCard from "@/components/compare/ProviderCard";
+import FxTicker from "@/components/compare/FxTicker";
 import {
   PROVIDERS,
   COUNTRIES,
@@ -84,7 +85,7 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
   es: {
     title: "Comparar proveedores (EE. UU. → América Latina)",
     subtitle:
-      "Elige el país, ingresa el monto y el método para ver quién entrega más dinero en moneda local (estimado), incluyendo comisiones, spread y velocidad.",
+      "Elige el país, ingresa el monto y el método y ve quién entrega más dinero en moneda local (estimado), incluyendo comisiones, spread y velocidad.",
     countryLabel: "País de destino",
     amountLabel: "Monto en USD",
     amountHintPrefix: "Envías:",
@@ -156,14 +157,34 @@ export default function ComparePage() {
   const [fxError, setFxError] = useState<string | null>(null);
   const [fxStamp, setFxStamp] = useState<string | null>(null);
 
-  const country = COUNTRY_BY_CODE[countryCode];
+  // “Thinking” overlay when user changes inputs
+  const [isComputing, setIsComputing] = useState(false);
+  const computeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset FX hint when corridor changes
+  function triggerCompute() {
+    if (computeTimeoutRef.current) clearTimeout(computeTimeoutRef.current);
+    setIsComputing(true);
+    computeTimeoutRef.current = setTimeout(() => {
+      setIsComputing(false);
+    }, 750); // sweet spot: feels real, not annoying
+  }
+
   useEffect(() => {
-    setMidRate(country.defaultMidRate);
+    return () => {
+      if (computeTimeoutRef.current) clearTimeout(computeTimeoutRef.current);
+    };
+  }, []);
+
+  const country = COUNTRY_BY_CODE[countryCode];
+  const destCurrencyCode = country.currencyCode;
+
+  // When country changes, reset FX rate to that corridor's default hint
+  useEffect(() => {
+    const cfg = COUNTRY_BY_CODE[countryCode];
+    setMidRate(cfg.defaultMidRate);
     setFxStamp(null);
     setFxError(null);
-  }, [countryCode, country.defaultMidRate]);
+  }, [countryCode]);
 
   const quotes = useMemo(() => {
     const built: Quote[] = [];
@@ -184,8 +205,8 @@ export default function ComparePage() {
   const best = quotes[0];
   const second = quotes[1];
 
-  // Savings in destination currency
-  const bestSavings = useMemo(() => {
+  // Savings in destination currency (receiveAmount)
+  const bestSavingsBRL = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
     return diff > 0 ? diff : 0;
@@ -226,6 +247,8 @@ export default function ComparePage() {
       setFxStamp(
         `${data.provider ?? "FX"} • ${data.date ?? labelByLang[lang]}`
       );
+
+      triggerCompute();
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Erro ao buscar câmbio.";
@@ -235,58 +258,43 @@ export default function ComparePage() {
     }
   }
 
-  // ---- UI ----
-  const destCurrency = country.currencyCode;
-  const bestReceiveFormatted =
-    best &&
-    formatDestCurrency(best.receiveAmount, destCurrency);
-
-  const savingsFormatted =
-    best && bestSavings && bestSavings > 0
-      ? formatDestCurrency(bestSavings, destCurrency)
-      : null;
-
   return (
-    <main className="min-h-screen bg-[#050712] text-white relative overflow-hidden">
-      {/* background glows / grid */}
+    <main className="min-h-screen bg-[#050814] text-white overflow-hidden relative">
+      {/* Background glow */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-emerald-400/15 blur-3xl" />
-        <div className="absolute top-40 -left-32 h-[420px] w-[420px] rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 right-0 h-[520px] w-[520px] rounded-full bg-indigo-500/15 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.05)_0,_rgba(255,255,255,0)_60%)]" />
-        <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(to_right,#ffffff10_1px,transparent_1px),linear-gradient(to_bottom,#ffffff10_1px,transparent_1px)] bg-[size:40px_40px]" />
+        <div className="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-emerald-500/18 blur-3xl" />
+        <div className="absolute top-52 -left-40 h-[420px] w-[420px] rounded-full bg-sky-500/14 blur-3xl" />
+        <div className="absolute -bottom-40 right-0 h-[520px] w-[520px] rounded-full bg-amber-400/14 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06)_0,rgba(255,255,255,0)_55%)]" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 py-10">
-        {/* header */}
-        <div className="flex flex-col gap-3 pb-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-xs text-white/80 backdrop-blur">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            {lang === "pt"
-              ? "Ferramenta independente de comparação"
-              : lang === "es"
-              ? "Herramienta independiente de comparación"
-              : "Independent comparison tool"}
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-            {t.title}
-          </h1>
-          <p className="max-w-2xl text-white/70 text-sm sm:text-base">
-            {t.subtitle}
-          </p>
+        {/* Header pill */}
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80 mb-5">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          {lang === "pt"
+            ? "Ferramenta independente de comparação"
+            : lang === "es"
+            ? "Herramienta independiente de comparación"
+            : "Independent comparison tool"}
         </div>
 
-        {/* Controls + summary strip */}
-        <div className="mt-4 grid gap-4 rounded-3xl border border-white/10 bg-black/40 p-5 sm:p-6 backdrop-blur-xl">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+          {t.title}
+        </h1>
+        <p className="mt-2 text-white/70 max-w-3xl">{t.subtitle}</p>
+
+        {/* Controls */}
+        <div className="mt-8 rounded-3xl border border-white/10 bg-black/30 backdrop-blur-sm p-5 sm:p-6">
           <div className="grid gap-4 md:grid-cols-5">
             <Control label={t.countryLabel}>
               <select
                 value={countryCode}
-                onChange={(e) =>
-                  setCountryCode(e.target.value as CountryCode)
-                }
-                className="w-full rounded-xl bg-black/60 border border-white/15 px-4 py-3 text-white text-sm outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                onChange={(e) => {
+                  setCountryCode(e.target.value as CountryCode);
+                  triggerCompute();
+                }}
+                className="w-full rounded-xl bg-black/40 border border-white/12 px-4 py-3 text-white outline-none"
               >
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -301,10 +309,13 @@ export default function ComparePage() {
                 type="number"
                 min={1}
                 value={usdAmount}
-                onChange={(e) => setUsdAmount(Number(e.target.value || 0))}
-                className="w-full rounded-xl bg-black/60 border border-white/15 px-4 py-3 text-white text-sm outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                onChange={(e) => {
+                  setUsdAmount(Number(e.target.value || 0));
+                  triggerCompute();
+                }}
+                className="w-full rounded-xl bg-black/40 border border-white/12 px-4 py-3 text-white outline-none"
               />
-              <div className="mt-1 text-xs text-white/55">
+              <div className="mt-1 text-xs text-white/50">
                 {t.amountHintPrefix} {formatUSD(usdAmount)}
               </div>
             </Control>
@@ -315,18 +326,21 @@ export default function ComparePage() {
                   type="number"
                   step="0.0001"
                   value={midRate}
-                  onChange={(e) => setMidRate(Number(e.target.value || 0))}
-                  className="w-full rounded-xl bg-black/60 border border-white/15 px-4 py-3 text-white text-sm outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                  onChange={(e) => {
+                    setMidRate(Number(e.target.value || 0));
+                    triggerCompute();
+                  }}
+                  className="w-full rounded-xl bg-black/40 border border-white/12 px-4 py-3 text-white outline-none"
                 />
                 <button
                   onClick={handleAutoFx}
                   disabled={fxLoading}
-                  className="rounded-xl bg-white text-black px-4 py-3 text-xs sm:text-sm font-semibold hover:bg-white/90 disabled:opacity-60 transition"
+                  className="rounded-xl bg-white text-black px-4 py-3 text-sm font-semibold hover:bg-white/90 disabled:opacity-60"
                 >
                   {fxLoading ? t.autoFxLoading : t.autoFxIdle}
                 </button>
               </div>
-              <div className="mt-1 text-xs text-white/55 min-h-[1.1rem]">
+              <div className="mt-1 text-xs text-white/55">
                 {fxError ? (
                   <span className="text-red-200">{fxError}</span>
                 ) : fxStamp ? (
@@ -340,10 +354,11 @@ export default function ComparePage() {
             <Control label={t.methodLabel}>
               <select
                 value={method}
-                onChange={(e) =>
-                  setMethod(e.target.value as DeliveryMethod)
-                }
-                className="w-full rounded-xl bg-black/60 border border-white/15 px-4 py-3 text-white text-sm outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                onChange={(e) => {
+                  setMethod(e.target.value as DeliveryMethod);
+                  triggerCompute();
+                }}
+                className="w-full rounded-xl bg-black/40 border border-white/12 px-4 py-3 text-white outline-none"
               >
                 <option value="bank">{methodLabel("bank", lang)}</option>
                 <option value="debit">{methodLabel("debit", lang)}</option>
@@ -354,100 +369,162 @@ export default function ComparePage() {
             <Control label={t.prefLabel}>
               <select
                 value={pref}
-                onChange={(e) =>
-                  setPref(e.target.value as SpeedPreference)
-                }
-                className="w-full rounded-xl bg-black/60 border border-white/15 px-4 py-3 text-white text-sm outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                onChange={(e) => {
+                  setPref(e.target.value as SpeedPreference);
+                  triggerCompute();
+                }}
+                className="w-full rounded-xl bg-black/40 border border-white/12 px-4 py-3 text-white outline-none"
               >
                 <option value="balanced">{t.prefBalanced}</option>
                 <option value="cheapest">{t.prefCheapest}</option>
                 <option value="fastest">{t.prefFastest}</option>
               </select>
 
-              <label className="mt-3 flex items-center gap-2 text-xs sm:text-sm text-white/70 select-none">
+              <label className="mt-3 flex items-center gap-2 text-sm text-white/70 select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-white/40 bg-black/60"
                   checked={isWeekend}
-                  onChange={(e) => setIsWeekend(e.target.checked)}
+                  onChange={(e) => {
+                    setIsWeekend(e.target.checked);
+                    triggerCompute();
+                  }}
                 />
                 {t.weekendCheckbox}
               </label>
             </Control>
           </div>
 
-          {/* summary strip */}
-          {best && (
-            <div className="mt-1 rounded-2xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/10 via-sky-500/10 to-transparent px-4 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="h-8 w-8 rounded-full bg-emerald-400/20 border border-emerald-300/50 flex items-center justify-center text-xs font-semibold text-emerald-100">
-                  {lang === "pt"
-                    ? "Sugestão"
-                    : lang === "es"
-                    ? "Sugerido"
-                    : "Best now"}
-                </div>
-                <div>
-                  <div className="text-xs sm:text-sm text-white/70">
-                    {lang === "pt"
-                      ? "Melhor estimativa neste momento:"
-                      : lang === "es"
-                      ? "Mejor estimación ahora:"
-                      : "Best estimate right now:"}
-                  </div>
-                  <div className="text-sm sm:text-base font-semibold">
-                    {best.provider.name} –{" "}
-                    {bestReceiveFormatted}{" "}
-                    <span className="text-xs text-white/60 font-normal">
-                      ({country.currencyCode})
-                    </span>
-                  </div>
-                  {savingsFormatted && (
-                    <div className="text-xs text-emerald-200 mt-0.5">
-                      {lang === "pt"
-                        ? `≈ ${savingsFormatted} a mais do que a 2ª opção (estimativa).`
-                        : lang === "es"
-                        ? `≈ ${savingsFormatted} más que la segunda opción (estimado).`
-                        : `≈ ${savingsFormatted} more than the #2 option (estimate).`}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2 text-[11px] text-white/65">
-                <span>
-                  {lang === "pt"
-                    ? "Inclui taxas, spread de câmbio e velocidade estimada."
-                    : lang === "es"
-                    ? "Incluye comisiones, spread de cambio y velocidad estimada."
-                    : "Includes fees, FX spread and estimated speed."}
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="text-[11px] sm:text-xs text-white/55 leading-relaxed pt-1">
+          <div className="mt-4 text-xs text-white/55 leading-relaxed">
             {t.disclaimer}
           </div>
         </div>
 
-        {/* Results list */}
-        <div className="mt-8 grid gap-4 pb-10">
-          {quotes.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-black/40 p-6 text-white/70 backdrop-blur">
-              {t.emptyState}
+        {/* FX ticker strip */}
+        <FxTicker activeCountry={countryCode} activeMidRate={midRate} />
+
+        {/* Best option summary strip */}
+        {best && (
+          <section className="mt-8 rounded-3xl border border-emerald-400/25 bg-gradient-to-r from-emerald-500/12 via-emerald-400/8 to-teal-400/10 p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="text-xs uppercase tracking-wide text-emerald-200/80">
+                  {lang === "pt"
+                    ? "Melhor opção agora (estimativa)"
+                    : lang === "es"
+                    ? "Mejor opción ahora (estimada)"
+                    : "Best option right now (estimate)"}
+                </div>
+                <div className="mt-1 text-lg font-semibold">
+                  {best.provider.name}
+                </div>
+                <p className="mt-1 text-sm text-white/75 max-w-md">
+                  {bestReason ||
+                    (lang === "pt"
+                      ? "Com base em valor recebido, taxas, câmbio (spread) e velocidade."
+                      : lang === "es"
+                      ? "Basado en monto recibido, comisiones, tipo de cambio (spread) y velocidad."
+                      : "Based on amount received, fees, FX spread and speed.")}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full sm:w-auto">
+                <QuickStat
+                  label={
+                    lang === "pt"
+                      ? "Você envia"
+                      : lang === "es"
+                      ? "Envías"
+                      : "You send"
+                  }
+                  value={formatUSD(best.usdAmount)}
+                  helper={`USD → ${destCurrencyCode}`}
+                />
+                <QuickStat
+                  label={
+                    lang === "pt"
+                      ? "Eles recebem (estim.)"
+                      : lang === "es"
+                      ? "Reciben (estim.)"
+                      : "They receive (est.)"
+                  }
+                  value={formatDestCurrency(best.receiveAmount, destCurrencyCode)}
+                  helper={
+                    bestSavingsBRL && bestSavingsBRL > 0
+                      ? (() => {
+                          const s = formatDestCurrency(
+                            bestSavingsBRL,
+                            destCurrencyCode
+                          );
+                          if (lang === "pt")
+                            return `≈ ${s} a mais que o 2º lugar`;
+                          if (lang === "es")
+                            return `≈ ${s} más que la 2ª mejor opción`;
+                          return `≈ ${s} more than the #2 option`;
+                        })()
+                      : undefined
+                  }
+                />
+                <QuickStat
+                  label={
+                    lang === "pt"
+                      ? "Velocidade estimada"
+                      : lang === "es"
+                      ? "Velocidad estimada"
+                      : "Estimated speed"
+                  }
+                  value={best.etaLabel}
+                  helper={methodLabel(best.method, lang)}
+                />
+              </div>
             </div>
-          ) : (
-            quotes.map((q, idx) => (
-              <ProviderCard
-                key={`${q.provider.id}-${q.method}`}
-                quote={q}
-                rank={idx + 1}
-                bestSavingsBRL={idx === 0 ? bestSavings : undefined}
-                bestReason={idx === 0 ? bestReason : undefined}
-              />
-            ))
+          </section>
+        )}
+
+        {/* Results + animated overlay */}
+        <div className="mt-8 relative">
+          {(isComputing || fxLoading) && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl border border-white/10 bg-black/60 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3 text-center px-6">
+                <div className="h-10 w-10 rounded-full border-2 border-white/25 border-t-white animate-spin" />
+                <p className="text-sm text-white/85">
+                  {lang === "pt"
+                    ? "Calculando as melhores opções…"
+                    : lang === "es"
+                    ? "Calculando las mejores opciones…"
+                    : "Calculating best options…"}
+                </p>
+                <p className="text-xs text-white/65 max-w-sm">
+                  {lang === "pt"
+                    ? "Levamos em conta valor recebido, taxas, câmbio (spread) e velocidade para ordenar os provedores."
+                    : lang === "es"
+                    ? "Ordenamos los proveedores según monto recibido, comisiones, tipo de cambio (spread) y velocidad."
+                    : "We rank providers by amount received, fees, FX spread and speed to give you a balanced view."}
+                </p>
+              </div>
+            </div>
           )}
+
+          <div
+            className={`grid gap-4 ${
+              isComputing || fxLoading ? "opacity-40 pointer-events-none" : ""
+            }`}
+          >
+            {quotes.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
+                {t.emptyState}
+              </div>
+            ) : (
+              quotes.map((q, idx) => (
+                <ProviderCard
+                  key={`${q.provider.id}-${q.method}`}
+                  quote={q}
+                  rank={idx + 1}
+                  bestSavingsBRL={idx === 0 ? bestSavingsBRL : undefined}
+                  bestReason={idx === 0 ? bestReason : undefined}
+                />
+              ))
+            )}
+          </div>
         </div>
       </div>
     </main>
@@ -463,9 +540,7 @@ function Control({
 }) {
   return (
     <div>
-      <div className="text-[11px] sm:text-xs text-white/60 mb-2">
-        {label}
-      </div>
+      <div className="text-xs text-white/60 mb-2">{label}</div>
       {children}
     </div>
   );
@@ -507,4 +582,26 @@ function computeBestReason(best: Quote, second: Quote, lang: Language): string {
 function etaMidHours(q: Quote) {
   const eta = q.provider.etaHours[q.method];
   return (eta.min + eta.max) / 2;
+}
+
+function QuickStat({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper?: string;
+}) {
+  return (
+    <div className="rounded-2xl bg-black/35 border border-white/15 px-4 py-3">
+      <div className="text-[11px] uppercase tracking-wide text-white/60">
+        {label}
+      </div>
+      <div className="mt-1 text-sm font-semibold">{value}</div>
+      {helper && (
+        <div className="mt-1 text-[11px] text-white/65">{helper}</div>
+      )}
+    </div>
+  );
 }
