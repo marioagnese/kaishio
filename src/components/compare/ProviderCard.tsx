@@ -54,20 +54,27 @@ const PROVIDER_TAGLINES: Record<ProviderId, Record<Language, string>> = {
 type ProviderCardProps = {
   quote: Quote;
   rank: number;
-  bestSavingsBRL?: number;
+  bestSavings?: number;   // 👈 renamed from bestSavingsBRL
   bestReason?: string;
 };
 
 export default function ProviderCard({
   quote,
   rank,
-  bestSavingsBRL,
+  bestSavings,
   bestReason,
 }: ProviderCardProps) {
   const { lang } = useLanguage();
 
-  const { provider, method, receiveAmount, feeUSD, customerRate, countryCode, etaLabel } =
-    quote;
+  const {
+    provider,
+    method,
+    receiveAmount,
+    feeUSD,
+    customerRate,
+    countryCode,
+    etaLabel,
+  } = quote;
 
   const country = COUNTRY_BY_CODE[countryCode];
   const destCurrency = country.currencyCode;
@@ -80,18 +87,17 @@ export default function ProviderCard({
   )}`;
 
   const tagline =
-    PROVIDER_TAGLINES[provider.id]?.[lang] ??
-    provider.tagline ??
-    "";
+    PROVIDER_TAGLINES[provider.id]?.[lang] ?? provider.tagline ?? "";
 
   const methodLabelText = methodLabel(method, lang);
 
   const isBest = rank === 1;
-  const hasSavings = isBest && bestSavingsBRL && bestSavingsBRL > 0;
+  const hasSavings =
+    isBest && typeof bestSavings === "number" && bestSavings > 0;
 
   const savingsText = hasSavings
     ? (() => {
-        const formatted = formatDestCurrency(bestSavingsBRL!, destCurrency);
+        const formatted = formatDestCurrency(bestSavings!, destCurrency);
         if (lang === "pt")
           return `≈ ${formatted} a mais em relação ao 2º lugar`;
         if (lang === "es")
@@ -171,7 +177,9 @@ export default function ProviderCard({
           <div className="mt-1 text-sm font-semibold">
             {formatUSD(quote.usdAmount)}
           </div>
-          <div className="mt-1 text-[11px] text-white/60">{effectiveRateLabel}</div>
+          <div className="mt-1 text-[11px] text-white/60">
+            {effectiveRateLabel}
+          </div>
         </div>
 
         <div className="rounded-2xl bg-black/25 border border-white/10 px-4 py-3">
@@ -182,7 +190,9 @@ export default function ProviderCard({
               ? "Recibe (estim.)"
               : "They receive (est.)"}
           </div>
-          <div className="mt-1 text-sm font-semibold">{destAmountFormatted}</div>
+          <div className="mt-1 text-sm font-semibold">
+            {destAmountFormatted}
+          </div>
           <div className="mt-1 text-[11px] text-white/60">
             {lang === "pt"
               ? `Taxas estimadas: ${feeFormatted}`
@@ -209,7 +219,9 @@ export default function ProviderCard({
           )}
 
           {isBest && reasonText && (
-            <div className="mt-1 text-[11px] text-white/70">{reasonText}</div>
+            <div className="mt-1 text-[11px] text-white/70">
+              {reasonText}
+            </div>
           )}
         </div>
       </div>
