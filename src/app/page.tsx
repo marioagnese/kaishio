@@ -1,8 +1,11 @@
+// src/app/page.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLanguage, type Language } from "@/contexts/LanguageContext";
-import FxTicker from "@/components/compare/FxTicker"; // ⬅️ NEW
+
+type WhyPoint = { title: string; body: string };
 
 type HomeCopy = {
   tagPill: string;
@@ -14,16 +17,30 @@ type HomeCopy = {
   heroParagraphEnd: string;
   primaryCta: string;
   secondaryCta: string;
+
+  stripLabel: string;
+
+  fxTickerLabel: string;
+  fxTickerLoading: string;
+  fxTickerError: string;
+
   trust: { title: string; body: string }[];
+
   cardTitle: string;
   cardSubtitle: string;
+  cardImageCaption: string;
   miniSteps: { title: string; body: string }[];
+
   providersTitle: string;
   providersBody: string;
+
   learnCta: string;
   compareCta: string;
   disclaimer: string;
   footerLine: string;
+
+  whyTitle: string;
+  whyPoints: WhyPoint[];
 };
 
 const HOME_COPY: Record<Language, HomeCopy> = {
@@ -38,8 +55,18 @@ const HOME_COPY: Record<Language, HomeCopy> = {
       "We compare providers (fees + FX spread + speed) so you can choose clearly — and save.",
     primaryCta: "Compare now",
     secondaryCta: "Understand in 30 seconds",
+
+    stripLabel: "We currently compare",
+
+    fxTickerLabel: "Sample FX today (estimate only):",
+    fxTickerLoading: "Loading FX samples…",
+    fxTickerError: "Couldn’t load FX right now.",
+
     trust: [
-      { title: "No tricks", body: "We show estimates and explain the FX spread." },
+      {
+        title: "No tricks",
+        body: "We show estimates and explain the FX spread.",
+      },
       {
         title: "We never move your money",
         body: "You complete the transfer on the provider’s own app/site.",
@@ -49,15 +76,18 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Clear comparison (with affiliate links when available).",
       },
     ],
+
     cardTitle: "Money without borders",
     cardSubtitle: "Compare • choose • send with confidence",
+    cardImageCaption:
+      "Real people, real transfers — we help you find the clearer option.",
     miniSteps: [
       {
         title: "Enter the amount in USD",
         body: "You tell us how much you want to send.",
       },
       {
-        title: "See total cost and BRL estimate",
+        title: "See total cost and estimate",
         body: "Fees + FX (spread) + speed.",
       },
       {
@@ -65,15 +95,34 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "The transfer happens outside Kaishio.",
       },
     ],
+
     providersTitle: "Providers (initial phase)",
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
+
     learnCta: "Learn before sending",
     compareCta: "Go to comparer",
     disclaimer:
       "Notice: Kaishio is informational only and does not provide financial, legal, or tax advice. Final values may change due to promotions, payment method, and time (e.g. weekends).",
     footerLine:
       "Kaishio doesn’t send, receive, or hold money. Transfers happen with the provider you choose.",
+
+    whyTitle: "Why trust this tool?",
+    whyPoints: [
+      {
+        title: "Transparent math",
+        body: "We separate provider fees from FX spread so you can see the real cost.",
+      },
+      {
+        title: "Provider-agnostic",
+        body: "We don’t handle your money and you always finish on the provider’s own app.",
+      },
+      {
+        title: "Regional focus",
+        body: "Built specifically for US → Latin America transfers, not generic ‘global’ marketing.",
+      },
+    ],
   },
+
   pt: {
     tagPill: "Comparador independente • EUA → América Latina",
     heroPrefix: "Compare o",
@@ -85,6 +134,13 @@ const HOME_COPY: Record<Language, HomeCopy> = {
       "Comparamos provedores (taxas + câmbio/spread + velocidade) para você escolher com clareza — e economizar.",
     primaryCta: "Comparar agora",
     secondaryCta: "Entender em 30 segundos",
+
+    stripLabel: "Hoje comparamos",
+
+    fxTickerLabel: "Exemplo de câmbio hoje (apenas ilustrativo):",
+    fxTickerLoading: "Carregando exemplos de câmbio…",
+    fxTickerError: "Não foi possível carregar o câmbio agora.",
+
     trust: [
       {
         title: "Sem pegadinhas",
@@ -99,12 +155,18 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Comparação clara (com links afiliados quando houver).",
       },
     ],
+
     cardTitle: "Dinheiro sem fronteiras",
     cardSubtitle: "Compare • escolha • envie com confiança",
+    cardImageCaption:
+      "Pessoas reais, remessas reais — ajudamos você a enxergar o custo com clareza.",
     miniSteps: [
-      { title: "Digite o valor em USD", body: "Você informa quanto quer enviar." },
       {
-        title: "Veja custo total e BRL estimado",
+        title: "Digite o valor em USD",
+        body: "Você informa quanto quer enviar.",
+      },
+      {
+        title: "Veja custo total e estimativa",
         body: "Taxas + câmbio (spread) + velocidade.",
       },
       {
@@ -112,15 +174,34 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "A transferência acontece fora do Kaishio.",
       },
     ],
+
     providersTitle: "Provedores (fase inicial)",
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
+
     learnCta: "Aprender antes de enviar",
     compareCta: "Ir para o comparador",
     disclaimer:
       "Aviso: Kaishio é informativo e não oferece aconselhamento financeiro, legal ou fiscal. Valores finais podem variar por promoções, método de pagamento e horário (por exemplo, fim de semana).",
     footerLine:
       "Kaishio não envia, não recebe e não armazena dinheiro. As transações ocorrem no provedor escolhido.",
+
+    whyTitle: "Por que confiar nesta ferramenta?",
+    whyPoints: [
+      {
+        title: "Cálculo transparente",
+        body: "Separamos taxas do provedor e spread do câmbio para mostrar o custo real.",
+      },
+      {
+        title: "Sem conflito de interesse",
+        body: "Não tocamos no seu dinheiro; você sempre finaliza no app/site do provedor.",
+      },
+      {
+        title: "Foco regional",
+        body: "Feito especificamente para remessas EUA → América Latina, não um site genérico.",
+      },
+    ],
   },
+
   es: {
     tagPill: "Comparador independiente • EE. UU. → América Latina",
     heroPrefix: "Compara el",
@@ -132,6 +213,13 @@ const HOME_COPY: Record<Language, HomeCopy> = {
       "Comparamos proveedores (comisiones + tipo de cambio/spread + velocidad) para que elijas con claridad y puedas ahorrar.",
     primaryCta: "Comparar ahora",
     secondaryCta: "Entender en 30 segundos",
+
+    stripLabel: "Hoy comparamos",
+
+    fxTickerLabel: "Ejemplo de cambio de hoy (solo ilustrativo):",
+    fxTickerLoading: "Cargando ejemplos de cambio…",
+    fxTickerError: "No se pudo cargar el tipo de cambio ahora.",
+
     trust: [
       {
         title: "Sin trucos",
@@ -146,12 +234,18 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Comparación clara (con enlaces de afiliado cuando existan).",
       },
     ],
+
     cardTitle: "Dinero sin fronteras",
     cardSubtitle: "Compara • elige • envía con confianza",
+    cardImageCaption:
+      "Personas reales, envíos reales — te ayudamos a ver el costo con claridad.",
     miniSteps: [
-      { title: "Ingresa el monto en USD", body: "Indicas cuánto quieres enviar." },
       {
-        title: "Ve el costo total y el BRL estimado",
+        title: "Ingresa el monto en USD",
+        body: "Indicas cuánto quieres enviar.",
+      },
+      {
+        title: "Ve el costo total y la estimación",
         body: "Comisiones + tipo de cambio (spread) + velocidad.",
       },
       {
@@ -159,20 +253,98 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "La transferencia ocurre fuera de Kaishio.",
       },
     ],
+
     providersTitle: "Proveedores (fase inicial)",
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
+
     learnCta: "Aprender antes de enviar",
     compareCta: "Ir al comparador",
     disclaimer:
       "Aviso: Kaishio es solo informativo y no ofrece asesoría financiera, legal o fiscal. Los valores finales pueden variar según promociones, método de pago y horario (por ejemplo, fines de semana).",
     footerLine:
       "Kaishio no envía, recibe ni almacena dinero. Las transferencias se realizan con el proveedor que elijas.",
+
+    whyTitle: "¿Por qué confiar en esta herramienta?",
+    whyPoints: [
+      {
+        title: "Cálculo transparente",
+        body: "Separamos comisiones del proveedor y spread del tipo de cambio para mostrar el costo real.",
+      },
+      {
+        title: "Sin conflicto de interés",
+        body: "No manejamos tu dinero; siempre terminas en la app/sitio del proveedor.",
+      },
+      {
+        title: "Enfoque regional",
+        body: "Diseñado específicamente para envíos EE. UU. → América Latina, no un sitio genérico.",
+      },
+    ],
   },
 };
+
+const PROVIDER_CHIPS = [
+  "Wise",
+  "Remitly",
+  "Xoom",
+  "PayPal",
+  "Western Union",
+  "MoneyGram",
+];
+
+type FxSample = { pair: string; rate: number };
 
 export default function HomePage() {
   const { lang } = useLanguage();
   const t = HOME_COPY[lang];
+
+  const [fxSamples, setFxSamples] = useState<FxSample[] | null>(null);
+  const [fxLoading, setFxLoading] = useState<boolean>(false);
+  const [fxError, setFxError] = useState<string | null>(null);
+
+  // Load a few illustrative FX samples on mount
+  useEffect(() => {
+    async function loadFx() {
+      try {
+        setFxLoading(true);
+        setFxError(null);
+
+        const targets = ["BRL", "MXN", "COP"];
+        const results: FxSample[] = [];
+
+        await Promise.all(
+          targets.map(async (code) => {
+            const res = await fetch(
+              `/api/fx?from=USD&to=${encodeURIComponent(code)}`,
+              { cache: "no-store" },
+            );
+            if (!res.ok) return;
+
+            const data: { rate?: number } = await res.json();
+            if (!data.rate || Number.isNaN(data.rate)) return;
+
+            results.push({
+              pair: `USD → ${code}`,
+              rate: data.rate,
+            });
+          }),
+        );
+
+        if (results.length === 0) {
+          setFxError("no-data");
+          setFxSamples(null);
+        } else {
+          setFxSamples(results);
+        }
+      } catch {
+        setFxError("request-failed");
+        setFxSamples(null);
+      } finally {
+        setFxLoading(false);
+      }
+    }
+
+    loadFx();
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#070A12] text-white overflow-hidden relative">
@@ -187,7 +359,7 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          {/* Left */}
+          {/* LEFT COLUMN */}
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
@@ -213,7 +385,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/compare"
-                className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg:white/90 transition"
+                className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
               >
                 {t.primaryCta}
               </Link>
@@ -226,9 +398,49 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* FX TICKER STRIP ON HOMEPAGE */}
-            <div className="mt-6">
-              <FxTicker activeCountry="BR" activeMidRate={5.3} />
+            {/* PROVIDER STRIP */}
+            <div className="mt-6 flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-wide text-white/55">
+                {t.stripLabel}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {PROVIDER_CHIPS.map((name) => (
+                  <span
+                    key={name}
+                    className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white/80"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* FX TICKER STRIP */}
+            <div className="mt-3 flex flex-col gap-1 rounded-2xl border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-wide text-white/55">
+                {t.fxTickerLabel}
+              </div>
+              {fxError ? (
+                <span className="text-xs text-red-200">{t.fxTickerError}</span>
+              ) : fxLoading || !fxSamples ? (
+                <span className="text-xs text-white/60">
+                  {t.fxTickerLoading}
+                </span>
+              ) : (
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {fxSamples.map((item) => (
+                    <span
+                      key={item.pair}
+                      className="rounded-full bg-white/10 px-3 py-1 text-white/85"
+                    >
+                      {item.pair}{" "}
+                      <span className="font-semibold">
+                        {item.rate.toFixed(2)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Trust row */}
@@ -237,11 +449,54 @@ export default function HomePage() {
                 <TrustCard key={idx} title={item.title} body={item.body} />
               ))}
             </div>
+
+            {/* Why trust this tool */}
+            <div className="mt-6 rounded-2xl border border-emerald-400/40 bg-emerald-500/8 px-4 py-4 text-xs sm:text-sm text-white/80">
+              <div className="font-semibold mb-2 text-emerald-100">
+                {t.whyTitle}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {t.whyPoints.map((p, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="font-semibold text-white">
+                      {p.title}
+                    </div>
+                    <div className="text-white/75">{p.body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {/* Right card (logo removed) */}
+          {/* RIGHT COLUMN */}
           <div className="relative">
             <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
+              {/* IMAGE COLLAGE */}
+              <div className="relative mb-6">
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 p-3">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-400/10 via-sky-400/10 to-amber-300/5 pointer-events-none" />
+                  <div className="relative flex gap-4 items-end">
+                    {/* Main image */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/illustrations/remit-family-1.png"
+                      alt="Family receiving money"
+                      className="h-32 w-40 sm:h-40 sm:w-52 rounded-2xl object-cover border border-white/15"
+                    />
+                    {/* Secondary image */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/illustrations/remit-phone-1.png"
+                      alt="Person sending money on the phone"
+                      className="h-20 w-28 sm:h-24 sm:w-32 rounded-2xl object-cover border border-white/15 translate-y-3"
+                    />
+                    <div className="ml-auto max-w-[170px] text-xs text-white/80 leading-relaxed">
+                      {t.cardImageCaption}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <div className="text-lg font-semibold">{t.cardTitle}</div>
                 <div className="text-sm text-white/60">{t.cardSubtitle}</div>
@@ -259,7 +514,9 @@ export default function HomePage() {
               </div>
 
               <div className="mt-6 rounded-2xl border border-white/15 bg-black/30 p-4">
-                <div className="text-sm font-semibold">{t.providersTitle}</div>
+                <div className="text-sm font-semibold">
+                  {t.providersTitle}
+                </div>
                 <div className="mt-2 text-sm text-white/70">
                   {t.providersBody}
                 </div>
@@ -268,7 +525,7 @@ export default function HomePage() {
               <div className="mt-5 flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/education"
-                  className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text:white hover:bg-white/10 transition"
+                  className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10 transition"
                 >
                   {t.learnCta}
                 </Link>
@@ -318,7 +575,7 @@ function MiniStep({
   body: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-2xl border border:white/12 bg-white/5 p-4">
+    <div className="flex gap-3 rounded-2xl border border-white/12 bg-white/5 p-4">
       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-black font-bold">
         {n}
       </div>
