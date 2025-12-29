@@ -184,7 +184,7 @@ export default function ComparePage() {
   const second = quotes[1];
 
   // Savings in destination currency (receiveAmount)
-  const bestSavings = useMemo(() => {
+  const bestSavingsBRL = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
     return diff > 0 ? diff : 0;
@@ -322,7 +322,7 @@ export default function ComparePage() {
                 onChange={(e) =>
                   setPref(e.target.value as SpeedPreference)
                 }
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text:white outline-none"
+                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
               >
                 <option value="balanced">{t.prefBalanced}</option>
                 <option value="cheapest">{t.prefCheapest}</option>
@@ -348,7 +348,7 @@ export default function ComparePage() {
         {/* Results */}
         <div className="mt-8 grid gap-4">
           {quotes.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg:white/5 p-6 text-white/70">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
               {t.emptyState}
             </div>
           ) : (
@@ -357,7 +357,7 @@ export default function ComparePage() {
                 key={`${q.provider.id}-${q.method}`}
                 quote={q}
                 rank={idx + 1}
-                bestSavings={idx === 0 ? bestSavings : undefined}
+                bestSavingsBRL={idx === 0 ? bestSavingsBRL : undefined}
                 bestReason={idx === 0 ? bestReason : undefined}
               />
             ))
@@ -386,7 +386,7 @@ function Control({
 function methodLabel(m: DeliveryMethod, lang: Language): string {
   if (lang === "en") {
     if (m === "bank") return "Bank account";
-    if (m === "debit") return "Card/Debit";
+    if (m === "debit") return "Card / debit";
     if (m === "cash") return "Cash pickup";
   } else if (lang === "pt") {
     if (m === "bank") return "Conta bancária";
