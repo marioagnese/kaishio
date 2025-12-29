@@ -226,7 +226,7 @@ export const PROVIDERS: Provider[] = [
     id: "taptapsend",
     name: "TapTap Send",
     tagline: "Mobile-first remittances",
-    methods: ["bank", "cash"], // treating wallet/agent-style payouts as 'cash'
+    methods: ["bank", "debit", "cash"], // align with feeUSD/etaHours
     link: "https://www.taptapsend.com/",
     color: {
       border: "border-emerald-300/40",
@@ -282,8 +282,15 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "BRL",
     currencySymbol: "R$",
     defaultMidRate: 5.3,
-    providers: ["wise", "remitly", "xoom", "paypal", "western_union", "moneygram"],
-    // When you confirm which corridors TapTap Send supports, add "taptapsend" here if relevant.
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "paypal",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "MX",
@@ -295,7 +302,14 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "MXN",
     currencySymbol: "$",
     defaultMidRate: 17.0,
-    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "AR",
@@ -307,7 +321,13 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "ARS",
     currencySymbol: "$",
     defaultMidRate: 1000, // placeholder, user should Auto FX
-    providers: ["wise", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "CL",
@@ -319,7 +339,14 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "CLP",
     currencySymbol: "$",
     defaultMidRate: 900,
-    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "CO",
@@ -331,7 +358,14 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "COP",
     currencySymbol: "$",
     defaultMidRate: 4000,
-    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "VE",
@@ -343,7 +377,11 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "VES",
     currencySymbol: "Bs",
     defaultMidRate: 40,
-    providers: ["western_union", "moneygram"],
+    providers: [
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "PE",
@@ -355,7 +393,14 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "PEN",
     currencySymbol: "S/",
     defaultMidRate: 3.7,
-    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
   {
     code: "EC",
@@ -367,7 +412,14 @@ export const COUNTRIES: CountryConfig[] = [
     currencyCode: "USD",
     currencySymbol: "$",
     defaultMidRate: 1,
-    providers: ["wise", "remitly", "xoom", "western_union", "moneygram"],
+    providers: [
+      "wise",
+      "remitly",
+      "xoom",
+      "western_union",
+      "moneygram",
+      "taptapsend",
+    ],
   },
 ];
 
