@@ -184,7 +184,7 @@ export default function ComparePage() {
   const second = quotes[1];
 
   // Savings in destination currency (receiveAmount)
-  const bestSavingsBRL = useMemo(() => {
+  const bestSavings = useMemo(() => {
     if (!best || !second) return undefined;
     const diff = best.receiveAmount - second.receiveAmount;
     return diff > 0 ? diff : 0;
@@ -357,7 +357,7 @@ export default function ComparePage() {
                 key={`${q.provider.id}-${q.method}`}
                 quote={q}
                 rank={idx + 1}
-                bestSavingsBRL={idx === 0 ? bestSavingsBRL : undefined}
+                bestSavings={idx === 0 ? bestSavings : undefined}
                 bestReason={idx === 0 ? bestReason : undefined}
               />
             ))
