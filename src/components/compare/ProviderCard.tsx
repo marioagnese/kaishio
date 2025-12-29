@@ -54,14 +54,14 @@ const PROVIDER_TAGLINES: Record<ProviderId, Record<Language, string>> = {
 type ProviderCardProps = {
   quote: Quote;
   rank: number;
-  bestSavings?: number;   // 👈 renamed from bestSavingsBRL
+  bestSavingsBRL?: number;
   bestReason?: string;
 };
 
 export default function ProviderCard({
   quote,
   rank,
-  bestSavings,
+  bestSavingsBRL,
   bestReason,
 }: ProviderCardProps) {
   const { lang } = useLanguage();
@@ -92,17 +92,16 @@ export default function ProviderCard({
   const methodLabelText = methodLabel(method, lang);
 
   const isBest = rank === 1;
-  const hasSavings =
-    isBest && typeof bestSavings === "number" && bestSavings > 0;
+  const hasSavings = isBest && bestSavingsBRL && bestSavingsBRL > 0;
 
   const savingsText = hasSavings
     ? (() => {
-        const formatted = formatDestCurrency(bestSavings!, destCurrency);
+        const formatted = formatDestCurrency(bestSavingsBRL!, destCurrency);
         if (lang === "pt")
-          return `≈ ${formatted} a mais em relação ao 2º lugar`;
+          return `≈ ${formatted} a mais em relação ao 2º lugar (estimativa)`;
         if (lang === "es")
-          return `≈ ${formatted} más que la segunda mejor opción`;
-        return `≈ ${formatted} more than the #2 option`;
+          return `≈ ${formatted} más que la segunda mejor opción (estimado)`;
+        return `≈ ${formatted} more than the #2 option (estimate)`;
       })()
     : null;
 
@@ -115,10 +114,16 @@ export default function ProviderCard({
       ? "Mejor relación costo–beneficio"
       : "Best overall value";
 
+  const countryLabel = country.label[lang];
+
   return (
-    <div
+    <article
       className={[
-        "rounded-3xl border bg-white/5 p-5 sm:p-6 flex flex-col gap-4 sm:flex-row sm:items-center",
+        "group rounded-3xl border bg-white/[0.03] backdrop-blur-xl",
+        "border-white/12 shadow-[0_18px_55px_rgba(15,23,42,0.70)]",
+        "px-4 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6",
+        "flex flex-col gap-4 sm:flex-row sm:items-center transition-transform duration-200",
+        "hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(15,23,42,0.85)]",
         provider.color.border,
         provider.color.bg,
         provider.color.glow,
@@ -127,16 +132,16 @@ export default function ProviderCard({
       {/* Left: rank + provider */}
       <div className="flex items-start sm:items-center gap-4 flex-1">
         <div className="flex flex-col items-center">
-          <div className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center font-semibold text-sm">
+          <div className="h-9 w-9 rounded-full bg-white text-black flex items-center justify-center font-semibold text-sm shadow-sm shadow-black/30">
             {rank}
           </div>
-          <span className="mt-1 text-[10px] uppercase tracking-wide text-white/60">
+          <span className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/55">
             {lang === "pt" ? "Posição" : lang === "es" ? "Posición" : "Rank"}
           </span>
         </div>
 
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-base sm:text-lg font-semibold">
               {provider.name}
             </div>
@@ -144,9 +149,11 @@ export default function ProviderCard({
               <span
                 className={[
                   "inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold",
+                  "shadow-[0_0_0_1px_rgba(15,23,42,0.2)]",
                   provider.color.badge,
                 ].join(" ")}
               >
+                <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-[0_0_0_1px_rgba(16,185,129,0.6)]" />
                 {bestLabel}
               </span>
             )}
@@ -156,18 +163,22 @@ export default function ProviderCard({
             {tagline}
           </div>
 
-          <div className="mt-2 inline-flex items-center gap-2 text-[11px] uppercase tracking-wide text-white/60">
-            <span>{methodLabelText}</span>
+          <div className="mt-2 inline-flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-white/60">
+            <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5">
+              {methodLabelText}
+            </span>
             <span>•</span>
-            <span>{country.label[lang]}</span>
+            <span className="rounded-full bg-white/5 border border-white/10 px-2 py-0.5">
+              {countryLabel}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Right: numbers */}
       <div className="grid gap-3 sm:grid-cols-3 w-full sm:w-auto sm:min-w-[360px]">
-        <div className="rounded-2xl bg-black/25 border border-white/10 px-4 py-3">
-          <div className="text-[11px] uppercase tracking-wide text-white/60">
+        <div className="rounded-2xl bg-black/25 border border-white/12 px-4 py-3">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">
             {lang === "pt"
               ? "Você envia"
               : lang === "es"
@@ -182,17 +193,15 @@ export default function ProviderCard({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-black/25 border border-white/10 px-4 py-3">
-          <div className="text-[11px] uppercase tracking-wide text-white/60">
+        <div className="rounded-2xl bg-black/25 border border-white/12 px-4 py-3">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">
             {lang === "pt"
               ? "Destinatário recebe (estim.)"
               : lang === "es"
               ? "Recibe (estim.)"
               : "They receive (est.)"}
           </div>
-          <div className="mt-1 text-sm font-semibold">
-            {destAmountFormatted}
-          </div>
+          <div className="mt-1 text-sm font-semibold">{destAmountFormatted}</div>
           <div className="mt-1 text-[11px] text-white/60">
             {lang === "pt"
               ? `Taxas estimadas: ${feeFormatted}`
@@ -202,8 +211,8 @@ export default function ProviderCard({
           </div>
         </div>
 
-        <div className="rounded-2xl bg-black/25 border border-white/10 px-4 py-3">
-          <div className="text-[11px] uppercase tracking-wide text-white/60">
+        <div className="rounded-2xl bg-black/25 border border-white/12 px-4 py-3">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-white/55">
             {lang === "pt"
               ? "Velocidade estimada"
               : lang === "es"
@@ -232,7 +241,7 @@ export default function ProviderCard({
           href={provider.link}
           target="_blank"
           rel="noreferrer"
-          className="mt-2 sm:mt-0 inline-flex justify-center rounded-full bg-white text-black px-4 py-2 text-sm font-semibold hover:bg-white/90 transition"
+          className="mt-3 sm:mt-0 inline-flex justify-center rounded-full bg-white text-black px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-white/90 transition shadow-sm shadow-black/30"
         >
           {lang === "pt"
             ? "Ir para o provedor"
@@ -241,7 +250,7 @@ export default function ProviderCard({
             : "Go to provider"}
         </Link>
       </div>
-    </div>
+    </article>
   );
 }
 

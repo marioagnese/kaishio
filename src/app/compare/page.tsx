@@ -14,6 +14,7 @@ import {
   type Quote,
   type CountryCode,
   formatUSD,
+  formatDestCurrency,
 } from "@/lib/providers";
 import { useLanguage, type Language } from "@/contexts/LanguageContext";
 
@@ -35,13 +36,15 @@ type CompareCopy = {
   weekendCheckbox: string;
   disclaimer: string;
   emptyState: string;
+  bestPanelTitle: string;
+  bestPanelSub: string;
 };
 
 const COMPARE_COPY: Record<Language, CompareCopy> = {
   en: {
     title: "Compare providers (US → Latin America)",
     subtitle:
-      "Choose the country, enter the amount, pick a method and see which option gives you more in local currency (estimate).",
+      "Choose the country, amount and method to see who delivers more in local currency (estimate) — including fees, FX spread and speed.",
     countryLabel: "Destination country",
     amountLabel: "Amount in USD",
     amountHintPrefix: "You send:",
@@ -58,11 +61,13 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
     disclaimer:
       "Notice: Kaishio is informational only. Final values can change based on promotions, user verification, timing, and method.",
     emptyState: "No providers available for the selected method.",
+    bestPanelTitle: "Best option right now (estimate)",
+    bestPanelSub: "Based on amount received, fees, FX spread and speed.",
   },
   pt: {
     title: "Comparar provedores (EUA → América Latina)",
     subtitle:
-      "Escolha o país, insira o valor, escolha o método e veja qual opção entrega mais dinheiro em moeda local (estimativa).",
+      "Escolha o país, o valor e o método para ver quem entrega mais em moeda local (estimativa) — incluindo taxas, spread e velocidade.",
     countryLabel: "País de destino",
     amountLabel: "Valor em USD",
     amountHintPrefix: "Você envia:",
@@ -79,11 +84,14 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
     disclaimer:
       "Aviso: Kaishio é informativo. Valores finais variam por promoções, verificação do usuário, horário e método.",
     emptyState: "Nenhum provedor disponível para o método selecionado.",
+    bestPanelTitle: "Melhor opção agora (estimativa)",
+    bestPanelSub:
+      "Com base em valor recebido, taxas, spread de câmbio e velocidade.",
   },
   es: {
     title: "Comparar proveedores (EE. UU. → América Latina)",
     subtitle:
-      "Elige el país, ingresa el monto, selecciona el método y ve qué opción entrega más dinero en moneda local (estimado).",
+      "Elige país, monto y método para ver quién entrega más en moneda local (estimado) — incluyendo comisiones, spread y velocidad.",
     countryLabel: "País de destino",
     amountLabel: "Monto en USD",
     amountHintPrefix: "Envías:",
@@ -101,6 +109,9 @@ const COMPARE_COPY: Record<Language, CompareCopy> = {
     disclaimer:
       "Aviso: Kaishio es solo informativo. Los valores finales cambian según promociones, verificación del usuario, horario y método.",
     emptyState: "No hay proveedores para el método seleccionado.",
+    bestPanelTitle: "Mejor opción ahora (estimado)",
+    bestPanelSub:
+      "Basado en monto recibido, comisiones, spread del tipo de cambio y velocidad.",
   },
 };
 
@@ -234,24 +245,85 @@ export default function ComparePage() {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-[#070A12] text-white">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-          {t.title}
-        </h1>
-        <p className="mt-2 text-white/70">{t.subtitle}</p>
+  // Nice label for "You send / They receive" in the highlight panel
+  const bestPanel = (() => {
+    if (!best) return null;
 
-        {/* Controls */}
-        <div className="mt-8 grid gap-4 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="grid gap-4 md:grid-cols-5">
+    const destCurrency = country.currencyCode;
+    const youSend = formatUSD(best.usdAmount);
+    const theyReceive = formatDestCurrency(best.receiveAmount, destCurrency);
+    const savingsFormatted =
+      bestSavings && bestSavings > 0
+        ? formatDestCurrency(bestSavings, destCurrency)
+        : null;
+
+    let savingsLine: string | null = null;
+    if (savingsFormatted) {
+      if (lang === "pt") {
+        savingsLine = `≈ ${savingsFormatted} a mais que a segunda melhor opção (estimativa).`;
+      } else if (lang === "es") {
+        savingsLine = `≈ ${savingsFormatted} más que la segunda mejor opción (estimado).`;
+      } else {
+        savingsLine = `≈ ${savingsFormatted} more than the #2 option (estimate).`;
+      }
+    }
+
+    const providerLine =
+      lang === "pt"
+        ? `Melhor estimativa: ${best.provider.name}`
+        : lang === "es"
+        ? `Mejor estimación: ${best.provider.name}`
+        : `Best estimate: ${best.provider.name}`;
+
+    return {
+      youSend,
+      theyReceive,
+      savingsLine,
+      providerLine,
+      etaLabel: best.etaLabel,
+    };
+  })();
+
+  return (
+    <main className="min-h-screen bg-[#020617] text-white relative overflow-hidden">
+      {/* Elegant background glows */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-emerald-500/15 blur-3xl" />
+        <div className="absolute top-40 -left-32 h-[440px] w-[440px] rounded-full bg-sky-500/10 blur-3xl" />
+        <div className="absolute bottom-[-180px] right-[-120px] h-[520px] w-[520px] rounded-full bg-amber-400/12 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04)_0,transparent_55%)]" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-12 lg:py-16">
+        {/* Header */}
+        <header className="mb-8 lg:mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/75">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span>
+              {lang === "pt"
+                ? "Ferramenta independente de comparação"
+                : lang === "es"
+                ? "Herramienta independiente de comparación"
+                : "Independent comparison tool"}
+            </span>
+          </div>
+
+          <h1 className="mt-4 text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight">
+            {t.title}
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base text-white/70 leading-relaxed">
+            {t.subtitle}
+          </p>
+        </header>
+
+        {/* Controls panel */}
+        <section className="rounded-[28px] border border-white/10 bg-white/[0.04] backdrop-blur-xl p-5 sm:p-6 lg:p-7 shadow-[0_24px_80px_rgba(15,23,42,0.65)]">
+          <div className="grid gap-4 lg:grid-cols-5">
             <Control label={t.countryLabel}>
               <select
                 value={countryCode}
-                onChange={(e) =>
-                  setCountryCode(e.target.value as CountryCode)
-                }
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+                onChange={(e) => setCountryCode(e.target.value as CountryCode)}
+                className="w-full rounded-xl bg-black/30 border border-white/12 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/60"
               >
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -267,9 +339,9 @@ export default function ComparePage() {
                 min={1}
                 value={usdAmount}
                 onChange={(e) => setUsdAmount(Number(e.target.value || 0))}
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+                className="w-full rounded-xl bg-black/30 border border-white/12 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/60"
               />
-              <div className="mt-1 text-xs text-white/50">
+              <div className="mt-1 text-xs text-white/55">
                 {t.amountHintPrefix} {formatUSD(usdAmount)}
               </div>
             </Control>
@@ -281,12 +353,12 @@ export default function ComparePage() {
                   step="0.0001"
                   value={midRate}
                   onChange={(e) => setMidRate(Number(e.target.value || 0))}
-                  className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+                  className="w-full rounded-xl bg-black/30 border border-white/12 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/60"
                 />
                 <button
                   onClick={handleAutoFx}
                   disabled={fxLoading}
-                  className="rounded-xl bg-white text-black px-4 py-3 text-sm font-semibold hover:bg-white/90 disabled:opacity-60"
+                  className="rounded-xl bg-white text-black px-4 py-3 text-xs sm:text-sm font-semibold hover:bg-white/90 disabled:opacity-60 transition"
                 >
                   {fxLoading ? t.autoFxLoading : t.autoFxIdle}
                 </button>
@@ -305,10 +377,8 @@ export default function ComparePage() {
             <Control label={t.methodLabel}>
               <select
                 value={method}
-                onChange={(e) =>
-                  setMethod(e.target.value as DeliveryMethod)
-                }
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+                onChange={(e) => setMethod(e.target.value as DeliveryMethod)}
+                className="w-full rounded-xl bg-black/30 border border-white/12 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/60"
               >
                 <option value="bank">{methodLabel("bank", lang)}</option>
                 <option value="debit">{methodLabel("debit", lang)}</option>
@@ -322,33 +392,95 @@ export default function ComparePage() {
                 onChange={(e) =>
                   setPref(e.target.value as SpeedPreference)
                 }
-                className="w-full rounded-xl bg-black/30 border border-white/10 px-4 py-3 text-white outline-none"
+                className="w-full rounded-xl bg-black/30 border border-white/12 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/60"
               >
                 <option value="balanced">{t.prefBalanced}</option>
                 <option value="cheapest">{t.prefCheapest}</option>
                 <option value="fastest">{t.prefFastest}</option>
               </select>
 
-              <label className="mt-3 flex items-center gap-2 text-sm text-white/70 select-none">
+              <label className="mt-3 flex items-center gap-2 text-xs sm:text-sm text-white/70 select-none">
                 <input
                   type="checkbox"
                   checked={isWeekend}
                   onChange={(e) => setIsWeekend(e.target.checked)}
+                  className="h-4 w-4 rounded border-white/30 bg-black/40"
                 />
                 {t.weekendCheckbox}
               </label>
             </Control>
           </div>
 
-          <div className="text-xs text-white/55 leading-relaxed">
+          <div className="mt-4 text-xs text-white/55 leading-relaxed">
             {t.disclaimer}
           </div>
-        </div>
+        </section>
+
+        {/* Best option summary panel */}
+        {best && bestPanel && (
+          <section className="mt-8">
+            <div className="rounded-3xl border border-emerald-300/25 bg-gradient-to-r from-emerald-500/10 via-sky-500/10 to-transparent px-5 py-4 sm:px-6 sm:py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-xs uppercase tracking-[0.16em] text-emerald-200/90">
+                  {t.bestPanelTitle}
+                </div>
+                <div className="mt-1 text-sm text-white/80">
+                  {t.bestPanelSub}
+                </div>
+                <div className="mt-2 text-xs text-emerald-100/90">
+                  {bestPanel.providerLine}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 text-xs sm:text-sm">
+                <div className="rounded-2xl bg-black/35 border border-white/10 px-4 py-2 min-w-[150px]">
+                  <div className="text-[10px] uppercase tracking-wide text-white/55">
+                    {lang === "pt"
+                      ? "Você envia"
+                      : lang === "es"
+                      ? "Envías"
+                      : "You send"}
+                  </div>
+                  <div className="mt-1 font-semibold">
+                    {bestPanel.youSend}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-black/35 border border-white/10 px-4 py-2 min-w-[150px]">
+                  <div className="text-[10px] uppercase tracking-wide text-white/55">
+                    {lang === "pt"
+                      ? "Recebe (estim.)"
+                      : lang === "es"
+                      ? "Recibe (estim.)"
+                      : "They receive (est.)"}
+                  </div>
+                  <div className="mt-1 font-semibold">
+                    {bestPanel.theyReceive}
+                  </div>
+                  {bestPanel.savingsLine && (
+                    <div className="mt-1 text-[11px] text-emerald-200">
+                      {bestPanel.savingsLine}
+                    </div>
+                  )}
+                </div>
+                <div className="rounded-2xl bg-black/35 border border-white/10 px-4 py-2 min-w-[140px]">
+                  <div className="text-[10px] uppercase tracking-wide text-white/55">
+                    {lang === "pt"
+                      ? "Velocidade estimada"
+                      : lang === "es"
+                      ? "Velocidad estimada"
+                      : "Estimated speed"}
+                  </div>
+                  <div className="mt-1 font-semibold">{bestPanel.etaLabel}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Results */}
-        <div className="mt-8 grid gap-4">
+        <section className="mt-8 lg:mt-10 grid gap-4">
           {quotes.length === 0 ? (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/70">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-white/70">
               {t.emptyState}
             </div>
           ) : (
@@ -357,12 +489,12 @@ export default function ComparePage() {
                 key={`${q.provider.id}-${q.method}`}
                 quote={q}
                 rank={idx + 1}
-                bestSavings={idx === 0 ? bestSavings : undefined}
+                bestSavingsBRL={idx === 0 ? bestSavings : undefined}
                 bestReason={idx === 0 ? bestReason : undefined}
               />
             ))
           )}
-        </div>
+        </section>
       </div>
     </main>
   );
@@ -377,7 +509,9 @@ function Control({
 }) {
   return (
     <div>
-      <div className="text-xs text-white/60 mb-2">{label}</div>
+      <div className="mb-2 text-[11px] uppercase tracking-[0.14em] text-white/55">
+        {label}
+      </div>
       {children}
     </div>
   );
