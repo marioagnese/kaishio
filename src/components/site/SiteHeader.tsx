@@ -41,17 +41,23 @@ export default function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
 
         {/* Brand / logo */}
-        <Link href="/" className="flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-5">
+
+          {/* Round big logo */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/brand/kaishiologo.png"
-            alt="Kaishio logo"
-            className="h-24 sm:h-26 md:h-30 w-auto object-contain"
-          />
+          <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border border-white/20 bg-white/10 p-2 shadow-[0_0_50px_rgba(255,255,255,0.08)] flex items-center justify-center">
+            <img
+              src="/brand/kaishiologo.png"
+              alt="Kaishio logo"
+              className="h-full w-full rounded-full object-contain"
+            />
+          </div>
 
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold">Kaishio</span>
-            <span className="text-[12px] text-white/60">
+            <span className="text-xl font-bold tracking-tight">
+              Kaishio
+            </span>
+            <span className="text-[13px] text-white/65">
               Money without borders
             </span>
           </div>
