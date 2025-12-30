@@ -1,122 +1,95 @@
+// src/components/site/SiteHeader.tsx
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage, type Language } from "@/contexts/LanguageContext";
 
-const LABELS: Record<
+const NAV_COPY: Record<
   Language,
   {
-    tagline: string;
     education: string;
-    how: string;
-    compare: string;
-    start: string;
+    howItWorks: string;
   }
 > = {
   en: {
-    tagline: "Money without borders",
     education: "Education",
-    how: "How it works",
-    compare: "Compare",
-    start: "Start",
+    howItWorks: "How it works",
   },
   pt: {
-    tagline: "Dinheiro sem fronteiras",
     education: "Educação",
-    how: "Como funciona",
-    compare: "Comparar",
-    start: "Começar",
+    howItWorks: "Como funciona",
   },
   es: {
-    tagline: "Dinero sin fronteras",
     education: "Educación",
-    how: "Cómo funciona",
-    compare: "Comparar",
-    start: "Empezar",
+    howItWorks: "Cómo funciona",
   },
 };
 
-const LANG_CHOICES: { code: Language; label: string }[] = [
-  { code: "en", label: "EN" },
-  { code: "pt", label: "PT" },
-  { code: "es", label: "ES" },
-];
-
 export default function SiteHeader() {
+  const pathname = usePathname();
   const { lang, setLang } = useLanguage();
-  const t = LABELS[lang];
+  const t = NAV_COPY[lang];
+
+  const isActive = (href: string) =>
+    pathname === href
+      ? "text-white"
+      : "text-white/70 hover:text-white transition";
 
   return (
-    <header className="sticky top-0 z-50 bg-[#060812]/80 backdrop-blur border-b border-white/10">
-      <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-        {/* BRAND */}
-        <Link href="/" className="flex items-center gap-6">
-          {/* BIG LOGO BADGE (reads on mobile) */}
-          <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full bg-white flex items-center justify-center shadow-xl ring-1 ring-black/10 overflow-hidden">
-            <Image
-              src="/brand/kaishiologo.png"
-              alt="Kaishio"
-              width={260}
-              height={260}
-              className="object-contain scale-[1.4]"
-              priority
-            />
-          </div>
-
-          {/* WORDMARK */}
-          <div className="leading-tight">
-            <div className="text-3xl sm:text-4xl font-bold tracking-wide">
-              Kaishio
-            </div>
-            <div className="text-base sm:text-lg text-white/70">
-              {t.tagline}
-            </div>
+    <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
+        {/* Brand / logo */}
+        <Link href="/" className="flex items-center gap-3">
+          {/* If you already have a logo component, use it here instead */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Kaishio logo"
+            className="h-10 w-10 rounded-full object-cover"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold">Kaishio</span>
+            <span className="text-[11px] text-white/60">
+              Money without borders
+            </span>
           </div>
         </Link>
 
-        {/* NAV + LANGUAGE TOGGLE */}
-        <div className="flex flex-col items-end gap-2">
-          {/* Language selector */}
-          <div className="flex items-center gap-1">
-            {LANG_CHOICES.map((item) => (
-              <button
-                key={item.code}
-                type="button"
-                onClick={() => setLang(item.code)}
-                className={[
-                  "px-2 py-1 text-xs rounded-full border transition",
-                  lang === item.code
-                    ? "bg-white text-black border-white"
-                    : "border-white/25 text-white/70 hover:bg-white/10",
-                ].join(" ")}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Nav links */}
-          <nav className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/education"
-              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
-            >
+        {/* Right side: nav + language */}
+        <div className="flex items-center gap-4">
+          <nav className="hidden sm:flex items-center gap-4 text-xs sm:text-sm">
+            <Link href="/education" className={isActive("/education")}>
               {t.education}
             </Link>
-            <Link
-              href="/how-it-works"
-              className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 transition"
-            >
-              {t.how}
+            <Link href="/how-it-works" className={isActive("/how-it-works")}>
+              {t.howItWorks}
             </Link>
-            <Link
-              href="/compare"
-              className="ml-2 inline-flex rounded-full bg-white text-black px-5 py-2 text-sm font-semibold hover:bg-white/90 transition"
-            >
-              {t.start}
-            </Link>
+            {/* NOTE: intentionally no "Start" button here anymore.
+                The only primary CTA lives on the home hero. */}
           </nav>
+
+          {/* Language toggle */}
+          <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-[11px] sm:text-xs">
+            {(["en", "pt", "es"] as Language[]).map((code) => {
+              const isCurrent = lang === code;
+              return (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => setLang(code)}
+                  className={
+                    "rounded-full px-2 py-1 transition " +
+                    (isCurrent
+                      ? "bg-white text-black font-semibold"
+                      : "text-white/70 hover:text-white")
+                  }
+                >
+                  {code.toUpperCase()}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </header>

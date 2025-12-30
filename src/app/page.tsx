@@ -15,8 +15,10 @@ type HomeCopy = {
   heroParagraphStart: string;
   heroParagraphBold: string;
   heroParagraphEnd: string;
+
   primaryCta: string;
-  secondaryCta: string;
+  secondaryInfoLink: string;
+  startHelper: string;
 
   stripLabel: string;
 
@@ -35,12 +37,15 @@ type HomeCopy = {
   providersBody: string;
 
   learnCta: string;
-  compareCta: string;
   disclaimer: string;
   footerLine: string;
 
   whyTitle: string;
   whyPoints: WhyPoint[];
+
+  infoTitle: string;
+  infoIntro: string;
+  infoClose: string;
 };
 
 const HOME_COPY: Record<Language, HomeCopy> = {
@@ -53,8 +58,10 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     heroParagraphBold: "research assistant",
     heroParagraphEnd:
       "We compare providers (fees + FX spread + speed) so you can choose clearly — and save.",
-    primaryCta: "Compare now",
-    secondaryCta: "Understand in 30 seconds",
+
+    primaryCta: "Start",
+    secondaryInfoLink: "How does this work?",
+    startHelper: "No signup, no spam — just see who gives more in local currency.",
 
     stripLabel: "We currently compare",
 
@@ -100,7 +107,6 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
 
     learnCta: "Learn before sending",
-    compareCta: "Go to comparer",
     disclaimer:
       "Notice: Kaishio is informational only and does not provide financial, legal, or tax advice. Final values may change due to promotions, payment method, and time (e.g. weekends).",
     footerLine:
@@ -121,6 +127,11 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Built specifically for US → Latin America transfers, not generic ‘global’ marketing.",
       },
     ],
+
+    infoTitle: "How Kaishio works",
+    infoIntro:
+      "Kaishio is a small research assistant for US → Latin America remittances. We don’t send money — we help you see who gives more in local currency, after fees and FX spread.",
+    infoClose: "Close",
   },
 
   pt: {
@@ -132,8 +143,11 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     heroParagraphBold: "assistente de pesquisa",
     heroParagraphEnd:
       "Comparamos provedores (taxas + câmbio/spread + velocidade) para você escolher com clareza — e economizar.",
-    primaryCta: "Comparar agora",
-    secondaryCta: "Entender em 30 segundos",
+
+    primaryCta: "Começar",
+    secondaryInfoLink: "Como isso funciona?",
+    startHelper:
+      "Sem cadastro, sem spam — só ver quem entrega mais em moeda local.",
 
     stripLabel: "Hoje comparamos",
 
@@ -179,7 +193,6 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
 
     learnCta: "Aprender antes de enviar",
-    compareCta: "Ir para o comparador",
     disclaimer:
       "Aviso: Kaishio é informativo e não oferece aconselhamento financeiro, legal ou fiscal. Valores finais podem variar por promoções, método de pagamento e horário (por exemplo, fim de semana).",
     footerLine:
@@ -200,6 +213,11 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Feito especificamente para remessas EUA → América Latina, não um site genérico.",
       },
     ],
+
+    infoTitle: "Como o Kaishio funciona",
+    infoIntro:
+      "O Kaishio é um assistente de pesquisa para remessas EUA → América Latina. Não enviamos dinheiro — ajudamos você a ver quem entrega mais em moeda local, depois de taxas e spread.",
+    infoClose: "Fechar",
   },
 
   es: {
@@ -211,8 +229,11 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     heroParagraphBold: "asistente de investigación",
     heroParagraphEnd:
       "Comparamos proveedores (comisiones + tipo de cambio/spread + velocidad) para que elijas con claridad y puedas ahorrar.",
-    primaryCta: "Comparar ahora",
-    secondaryCta: "Entender en 30 segundos",
+
+    primaryCta: "Comenzar",
+    secondaryInfoLink: "¿Cómo funciona?",
+    startHelper:
+      "Sin registro, sin spam: solo ver quién entrega más en moneda local.",
 
     stripLabel: "Hoy comparamos",
 
@@ -258,7 +279,6 @@ const HOME_COPY: Record<Language, HomeCopy> = {
     providersBody: "Wise • Remitly • Xoom • PayPal • Western Union • MoneyGram",
 
     learnCta: "Aprender antes de enviar",
-    compareCta: "Ir al comparador",
     disclaimer:
       "Aviso: Kaishio es solo informativo y no ofrece asesoría financiera, legal o fiscal. Los valores finales pueden variar según promociones, método de pago y horario (por ejemplo, fines de semana).",
     footerLine:
@@ -279,6 +299,11 @@ const HOME_COPY: Record<Language, HomeCopy> = {
         body: "Diseñado específicamente para envíos EE. UU. → América Latina, no un sitio genérico.",
       },
     ],
+
+    infoTitle: "Cómo funciona Kaishio",
+    infoIntro:
+      "Kaishio es un asistente de investigación para remesas EE. UU. → América Latina. No enviamos dinero: te ayudamos a ver quién entrega más en moneda local tras comisiones y spread.",
+    infoClose: "Cerrar",
   },
 };
 
@@ -301,7 +326,9 @@ export default function HomePage() {
   const [fxLoading, setFxLoading] = useState<boolean>(false);
   const [fxError, setFxError] = useState<string | null>(null);
 
-  // Load a few illustrative FX samples on mount
+  const [showInfo, setShowInfo] = useState(false);
+
+  // Load illustrative FX samples on mount
   useEffect(() => {
     async function loadFx() {
       try {
@@ -382,7 +409,8 @@ export default function HomePage() {
               . {t.heroParagraphEnd}
             </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            {/* MAIN CTA: single Start button */}
+            <div className="mt-8 flex flex-col gap-2 max-w-xs">
               <Link
                 href="/compare"
                 className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
@@ -390,81 +418,15 @@ export default function HomePage() {
                 {t.primaryCta}
               </Link>
 
-              <Link
-                href="/how-it-works"
-                className="inline-flex justify-center rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white hover:bg-white/10 transition"
+              <button
+                type="button"
+                onClick={() => setShowInfo(true)}
+                className="text-xs text-white/80 underline-offset-4 hover:underline self-start"
               >
-                {t.secondaryCta}
-              </Link>
-            </div>
+                {t.secondaryInfoLink}
+              </button>
 
-            {/* PROVIDER STRIP */}
-            <div className="mt-6 flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-wide text-white/55">
-                {t.stripLabel}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {PROVIDER_CHIPS.map((name) => (
-                  <span
-                    key={name}
-                    className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs text-white/80"
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* FX TICKER STRIP */}
-            <div className="mt-3 flex flex-col gap-1 rounded-2xl border border-white/10 bg-black/30 px-4 py-2 backdrop-blur-sm">
-              <div className="text-[11px] uppercase tracking-wide text-white/55">
-                {t.fxTickerLabel}
-              </div>
-              {fxError ? (
-                <span className="text-xs text-red-200">{t.fxTickerError}</span>
-              ) : fxLoading || !fxSamples ? (
-                <span className="text-xs text-white/60">
-                  {t.fxTickerLoading}
-                </span>
-              ) : (
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {fxSamples.map((item) => (
-                    <span
-                      key={item.pair}
-                      className="rounded-full bg-white/10 px-3 py-1 text-white/85"
-                    >
-                      {item.pair}{" "}
-                      <span className="font-semibold">
-                        {item.rate.toFixed(2)}
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Trust row */}
-            <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {t.trust.map((item, idx) => (
-                <TrustCard key={idx} title={item.title} body={item.body} />
-              ))}
-            </div>
-
-            {/* Why trust this tool */}
-            <div className="mt-6 rounded-2xl border border-emerald-400/40 bg-emerald-500/8 px-4 py-4 text-xs sm:text-sm text-white/80">
-              <div className="font-semibold mb-2 text-emerald-100">
-                {t.whyTitle}
-              </div>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {t.whyPoints.map((p, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="font-semibold text-white">
-                      {p.title}
-                    </div>
-                    <div className="text-white/75">{p.body}</div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs text-white/60">{t.startHelper}</p>
             </div>
           </div>
 
@@ -502,6 +464,7 @@ export default function HomePage() {
                 <div className="text-sm text-white/60">{t.cardSubtitle}</div>
               </div>
 
+              {/* Mini steps kept here (but you need to click “How does this work?” to see the full rationale) */}
               <div className="mt-6 grid gap-3">
                 {t.miniSteps.map((step, idx) => (
                   <MiniStep
@@ -529,12 +492,6 @@ export default function HomePage() {
                 >
                   {t.learnCta}
                 </Link>
-                <Link
-                  href="/compare"
-                  className="inline-flex justify-center rounded-xl bg-white text-black px-5 py-3 font-semibold hover:bg-white/90 transition"
-                >
-                  {t.compareCta}
-                </Link>
               </div>
             </div>
 
@@ -552,6 +509,101 @@ export default function HomePage() {
           <span>© {new Date().getFullYear()} Kaishio</span>
         </div>
       </footer>
+
+      {/* INFO OVERLAY – bundles all “busy” information into one place */}
+      {showInfo && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 px-4">
+          <div className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/15 bg-[#050814] p-6 sm:p-8">
+            <button
+              type="button"
+              onClick={() => setShowInfo(false)}
+              className="absolute right-4 top-4 text-xs text-white/60 hover:text-white"
+            >
+              {t.infoClose} ✕
+            </button>
+
+            <h2 className="text-xl sm:text-2xl font-semibold">
+              {t.infoTitle}
+            </h2>
+            <p className="mt-3 text-sm text-white/75">
+              {t.infoIntro}
+            </p>
+
+            {/* FX ticker inside overlay */}
+            <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 backdrop-blur-sm">
+              <div className="text-[11px] uppercase tracking-wide text-white/55">
+                {t.fxTickerLabel}
+              </div>
+              {fxError ? (
+                <span className="text-xs text-red-200">{t.fxTickerError}</span>
+              ) : fxLoading || !fxSamples ? (
+                <span className="text-xs text-white/60">
+                  {t.fxTickerLoading}
+                </span>
+              ) : (
+                <div className="flex flex-wrap gap-2 text-xs mt-1">
+                  {fxSamples.map((item) => (
+                    <span
+                      key={item.pair}
+                      className="rounded-full bg-white/10 px-3 py-1 text-white/85"
+                    >
+                      {item.pair}{" "}
+                      <span className="font-semibold">
+                        {item.rate.toFixed(2)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Trust row */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {t.trust.map((item, idx) => (
+                <TrustCard key={idx} title={item.title} body={item.body} />
+              ))}
+            </div>
+
+            {/* Why trust section */}
+            <div className="mt-6 rounded-2xl border border-emerald-400/40 bg-emerald-500/8 px-4 py-4 text-xs sm:text-sm text-white/80">
+              <div className="font-semibold mb-2 text-emerald-100">
+                {t.whyTitle}
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {t.whyPoints.map((p, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="font-semibold text-white">
+                      {p.title}
+                    </div>
+                    <div className="text-white/75">{p.body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Providers + steps again for clarity (more compact) */}
+            <div className="mt-6 rounded-2xl border border-white/15 bg-white/5 p-4 sm:p-5">
+              <div className="text-sm font-semibold">
+                {t.providersTitle}
+              </div>
+              <div className="mt-1 text-sm text-white/70">
+                {t.providersBody}
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                {t.miniSteps.map((step, idx) => (
+                  <MiniStep
+                    key={idx}
+                    n={(idx + 1).toString()}
+                    title={step.title}
+                    body={step.body}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
