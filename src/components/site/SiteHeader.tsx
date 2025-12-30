@@ -46,7 +46,7 @@ export default function SiteHeader() {
           <img
             src="/brand/kaishiologo.png"
             alt="Kaishio logo"
-            className="h-16 sm:h-20 md:h-24 w-auto object-contain"
+            className="h-24 sm:h-26 md:h-30 w-auto object-contain"
           />
 
           <div className="flex flex-col leading-tight">
