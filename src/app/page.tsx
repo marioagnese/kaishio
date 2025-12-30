@@ -1,4 +1,3 @@
-// src/app/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -308,15 +307,6 @@ const HOME_COPY: Record<Language, HomeCopy> = {
   },
 };
 
-const PROVIDER_CHIPS = [
-  "Wise",
-  "Remitly",
-  "Xoom",
-  "PayPal",
-  "Western Union",
-  "MoneyGram",
-];
-
 type FxSample = { pair: string; rate: number };
 
 export default function HomePage() {
@@ -387,12 +377,12 @@ export default function HomePage() {
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
         {/* Big hero logo watermark to fill the empty top-left area */}
-        <div className="pointer-events-none absolute -top-6 -left-6 opacity-40 sm:opacity-50 lg:opacity-60">
+        <div className="pointer-events-none absolute top-10 -left-10 opacity-25 sm:opacity-30 lg:opacity-35">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/kaishiologo.png"
             alt="Kaishio logo large"
-            className="w-[220px] sm:w-[280px] lg:w-[340px] rounded-full object-contain"
+            className="w-[260px] sm:w-[320px] lg:w-[380px] rounded-full object-contain"
           />
         </div>
 
