@@ -38,30 +38,30 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
 
         {/* Brand / logo */}
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/brand/kaishiologo.png"
             alt="Kaishio logo"
-            className="h-12 w-auto object-contain"
+            className="h-16 sm:h-20 md:h-24 w-auto object-contain"
           />
 
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold">Kaishio</span>
-            <span className="text-[11px] text-white/60">
+            <span className="text-lg font-semibold">Kaishio</span>
+            <span className="text-[12px] text-white/60">
               Money without borders
             </span>
           </div>
         </Link>
 
-        {/* Right side: nav + language */}
-        <div className="flex items-center gap-4">
+        {/* Right side */}
+        <div className="flex items-center gap-6">
 
           {/* Navigation */}
-          <nav className="hidden sm:flex items-center gap-4 text-xs sm:text-sm">
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
             <Link href="/education" className={isActive("/education")}>
               {t.education}
             </Link>
@@ -69,13 +69,10 @@ export default function SiteHeader() {
             <Link href="/how-it-works" className={isActive("/how-it-works")}>
               {t.howItWorks}
             </Link>
-
-            {/* NOTE: intentionally no Start button here anymore.
-               Primary CTA exists only on homepage hero. */}
           </nav>
 
           {/* Language toggle */}
-          <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-[11px] sm:text-xs">
+          <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-xs">
             {(["en", "pt", "es"] as Language[]).map((code) => {
               const isCurrent = lang === code;
               return (
@@ -95,7 +92,6 @@ export default function SiteHeader() {
               );
             })}
           </div>
-
         </div>
       </div>
     </header>
