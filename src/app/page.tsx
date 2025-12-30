@@ -61,7 +61,8 @@ const HOME_COPY: Record<Language, HomeCopy> = {
 
     primaryCta: "Start",
     secondaryInfoLink: "How does this work?",
-    startHelper: "No signup, no spam — just see who gives more in local currency.",
+    startHelper:
+      "No signup, no spam — just see who gives more in local currency.",
 
     stripLabel: "We currently compare",
 
@@ -385,7 +386,17 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+        {/* Big hero logo watermark to fill the empty top-left area */}
+        <div className="pointer-events-none absolute -top-6 -left-6 opacity-40 sm:opacity-50 lg:opacity-60">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/kaishiologo.png"
+            alt="Kaishio logo large"
+            className="w-[220px] sm:w-[280px] lg:w-[340px] rounded-full object-contain"
+          />
+        </div>
+
+        <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
           {/* LEFT COLUMN */}
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80">
@@ -464,7 +475,7 @@ export default function HomePage() {
                 <div className="text-sm text-white/60">{t.cardSubtitle}</div>
               </div>
 
-              {/* Mini steps kept here (but you need to click “How does this work?” to see the full rationale) */}
+              {/* Mini steps kept here */}
               <div className="mt-6 grid gap-3">
                 {t.miniSteps.map((step, idx) => (
                   <MiniStep
