@@ -5,47 +5,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage, type Language } from "@/contexts/LanguageContext";
 
-const NAV_COPY: Record<
-  Language,
-  {
-    education: string;
-    howItWorks: string;
-  }
-> = {
-  en: {
-    education: "Education",
-    howItWorks: "How it works",
-  },
-  pt: {
-    education: "Educação",
-    howItWorks: "Como funciona",
-  },
-  es: {
-    education: "Educación",
-    howItWorks: "Cómo funciona",
-  },
-};
-
 export default function SiteHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname(); // kept in case you want later logic
   const { lang, setLang } = useLanguage();
-  const t = NAV_COPY[lang];
-
-  const isActive = (href: string) =>
-    pathname === href
-      ? "text-white"
-      : "text-white/70 hover:text-white transition";
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 sm:py-5">
 
-        {/* Brand / logo */}
+        {/* Brand / big round logo */}
         <Link href="/" className="flex items-center gap-5">
-
-          {/* Round big logo */}
+          {/* Outer round badge so it matches your red circle idea */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full border border-white/20 bg-white/10 p-2 shadow-[0_0_50px_rgba(255,255,255,0.08)] flex items-center justify-center">
+          <div className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border border-white/25 bg-black/40 p-2 shadow-[0_0_45px_rgba(0,0,0,0.6)] flex items-center justify-center">
             <img
               src="/brand/kaishiologo.png"
               alt="Kaishio logo"
@@ -63,22 +35,9 @@ export default function SiteHeader() {
           </div>
         </Link>
 
-        {/* Right side */}
-        <div className="flex items-center gap-6">
-
-          {/* Navigation */}
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
-            <Link href="/education" className={isActive("/education")}>
-              {t.education}
-            </Link>
-
-            <Link href="/how-it-works" className={isActive("/how-it-works")}>
-              {t.howItWorks}
-            </Link>
-          </nav>
-
-          {/* Language toggle */}
-          <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-xs">
+        {/* Right side: ONLY language toggle now */}
+        <div className="flex items-center gap-4">
+          <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-xs sm:text-sm">
             {(["en", "pt", "es"] as Language[]).map((code) => {
               const isCurrent = lang === code;
               return (
