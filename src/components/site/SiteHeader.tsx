@@ -39,15 +39,16 @@ export default function SiteHeader() {
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
+
         {/* Brand / logo */}
         <Link href="/" className="flex items-center gap-3">
-          {/* If you already have a logo component, use it here instead */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo.png"
+            src="/brand/kaishiologo.png"
             alt="Kaishio logo"
-            className="h-10 w-10 rounded-full object-cover"
+            className="h-12 w-auto object-contain"
           />
+
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold">Kaishio</span>
             <span className="text-[11px] text-white/60">
@@ -58,15 +59,19 @@ export default function SiteHeader() {
 
         {/* Right side: nav + language */}
         <div className="flex items-center gap-4">
+
+          {/* Navigation */}
           <nav className="hidden sm:flex items-center gap-4 text-xs sm:text-sm">
             <Link href="/education" className={isActive("/education")}>
               {t.education}
             </Link>
+
             <Link href="/how-it-works" className={isActive("/how-it-works")}>
               {t.howItWorks}
             </Link>
-            {/* NOTE: intentionally no "Start" button here anymore.
-                The only primary CTA lives on the home hero. */}
+
+            {/* NOTE: intentionally no Start button here anymore.
+               Primary CTA exists only on homepage hero. */}
           </nav>
 
           {/* Language toggle */}
@@ -90,6 +95,7 @@ export default function SiteHeader() {
               );
             })}
           </div>
+
         </div>
       </div>
     </header>
