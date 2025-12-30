@@ -161,6 +161,11 @@ export default function ComparePage() {
   const [isComputing, setIsComputing] = useState(false);
   const computeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Copy-summary status
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
+
   function triggerCompute() {
     if (computeTimeoutRef.current) clearTimeout(computeTimeoutRef.current);
     setIsComputing(true);
@@ -257,6 +262,96 @@ export default function ComparePage() {
       setFxLoading(false);
     }
   }
+
+  async function handleCopySummary() {
+    if (!best) return;
+
+    try {
+      if (typeof navigator === "undefined" || !navigator.clipboard) {
+        throw new Error("Clipboard not available");
+      }
+
+      const providerName = best.provider.name;
+      const countryLabel = country.label[lang];
+      const destCur = destCurrencyCode;
+      const sendStr = formatUSD(best.usdAmount);
+      const receiveStr = formatDestCurrency(best.receiveAmount, destCur);
+      const feeStr = formatUSD(best.feeUSD);
+      const methodStr = methodLabel(best.method, lang);
+      const speedStr = best.etaLabel;
+
+      const savingsPart =
+        typeof bestSavingsBRL === "number" && bestSavingsBRL > 0
+          ? (() => {
+              const s = formatDestCurrency(bestSavingsBRL, destCur);
+              if (lang === "pt")
+                return ` Isso é cerca de ${s} a mais do que a 2ª melhor opção.`;
+              if (lang === "es")
+                return ` Eso es aproximadamente ${s} más que la 2ª mejor opción.`;
+              return ` That's about ${s} more than the #2 option.`;
+            })()
+          : "";
+
+      let text: string;
+
+      if (lang === "pt") {
+        text = [
+          `Resumo Kaishio (remessas EUA → ${countryLabel}):`,
+          `Melhor opção agora (estimativa): ${providerName}, usando ${methodStr}.`,
+          `Você envia: ${sendStr}. Destinatário recebe (estimado): ${receiveStr}.`,
+          `Taxas estimadas: ${feeStr}. Velocidade estimada: ${speedStr}.`,
+          `Valores baseados em estimativas de taxas + spread de câmbio + velocidade no Kaishio.com.`,
+          savingsPart,
+        ].join(" ");
+      } else if (lang === "es") {
+        text = [
+          `Resumen Kaishio (envíos EE. UU. → ${countryLabel}):`,
+          `Mejor opción ahora (estimada): ${providerName}, usando ${methodStr}.`,
+          `Tú envías: ${sendStr}. Destinatario recibe (estimado): ${receiveStr}.`,
+          `Comisiones estimadas: ${feeStr}. Velocidad estimada: ${speedStr}.`,
+          `Valores basados en comisiones + spread del tipo de cambio + velocidad según Kaishio.com.`,
+          savingsPart,
+        ].join(" ");
+      } else {
+        text = [
+          `Kaishio summary (US → ${countryLabel}):`,
+          `Best option right now (estimate): ${providerName} via ${methodStr}.`,
+          `You send: ${sendStr}. They receive (est.): ${receiveStr}.`,
+          `Estimated fees: ${feeStr}. Estimated speed: ${speedStr}.`,
+          `Values are estimates based on fees + FX spread + speed from Kaishio.com.`,
+          savingsPart,
+        ].join(" ");
+      }
+
+      await navigator.clipboard.writeText(text);
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2500);
+    } catch {
+      setCopyStatus("error");
+      setTimeout(() => setCopyStatus("idle"), 3000);
+    }
+  }
+
+  const copyButtonLabel =
+    lang === "pt"
+      ? "Copiar resumo"
+      : lang === "es"
+      ? "Copiar resumen"
+      : "Copy summary";
+
+  const copiedLabel =
+    lang === "pt"
+      ? "Copiado!"
+      : lang === "es"
+      ? "¡Copiado!"
+      : "Copied!";
+
+  const copyErrorLabel =
+    lang === "pt"
+      ? "Erro ao copiar."
+      : lang === "es"
+      ? "Error al copiar."
+      : "Error copying.";
 
   return (
     <main className="min-h-screen bg-[#050814] text-white overflow-hidden relative">
@@ -447,7 +542,10 @@ export default function ComparePage() {
                       ? "Reciben (estim.)"
                       : "They receive (est.)"
                   }
-                  value={formatDestCurrency(best.receiveAmount, destCurrencyCode)}
+                  value={formatDestCurrency(
+                    best.receiveAmount,
+                    destCurrencyCode
+                  )}
                   helper={
                     bestSavingsBRL && bestSavingsBRL > 0
                       ? (() => {
@@ -475,6 +573,36 @@ export default function ComparePage() {
                   value={best.etaLabel}
                   helper={methodLabel(best.method, lang)}
                 />
+              </div>
+            </div>
+
+            {/* Copy summary CTA row */}
+            <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-emerald-300/30 pt-4">
+              <p className="text-xs text-emerald-50/90 max-w-md">
+                {lang === "pt"
+                  ? "Quer compartilhar essa comparação com alguém? Copie um resumo pronto para colar no WhatsApp, e-mail ou mensagem."
+                  : lang === "es"
+                  ? "¿Quieres compartir esta comparación con alguien? Copia un resumen listo para pegar en WhatsApp, correo o mensaje."
+                  : "Want to share this comparison with someone? Copy a short summary ready to paste into WhatsApp, email, or a message."}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCopySummary}
+                  className="inline-flex items-center justify-center rounded-full bg-white text-black px-4 py-2 text-xs font-semibold hover:bg-white/90 transition shadow-sm"
+                >
+                  {copyButtonLabel}
+                </button>
+                {copyStatus === "copied" && (
+                  <span className="text-[11px] text-emerald-100">
+                    {copiedLabel}
+                  </span>
+                )}
+                {copyStatus === "error" && (
+                  <span className="text-[11px] text-red-200">
+                    {copyErrorLabel}
+                  </span>
+                )}
               </div>
             </div>
           </section>
