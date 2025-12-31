@@ -377,19 +377,19 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
-        {/* HUGE center logo row */}
-        <div className="flex justify-center mb-10">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/brand/kaishiologo.png"
-            alt="Kaishio logo"
-            className="h-32 sm:h-40 md:h-52 lg:h-64 w-auto rounded-full shadow-2xl shadow-black/50 bg-white"
-          />
-        </div>
-
         <div className="relative grid gap-10 lg:grid-cols-2 lg:items-start">
           {/* LEFT COLUMN */}
           <div>
+            {/* HUGE logo, centered over the whole left column */}
+            <div className="flex w-full justify-center mb-8">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/kaishiologo.png"
+                alt="Kaishio logo"
+                className="h-40 sm:h-56 md:h-72 lg:h-80 xl:h-96 w-auto rounded-full shadow-2xl shadow-black/50 bg-white"
+              />
+            </div>
+
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {t.tagPill}
@@ -433,7 +433,7 @@ export default function HomePage() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="relative lg:mt-8">
+          <div className="relative lg:mt-16">
             <div className="rounded-3xl border border-white/15 bg-white/5 p-7 backdrop-blur">
               {/* IMAGE COLLAGE */}
               <div className="relative mb-6">
