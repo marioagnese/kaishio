@@ -377,19 +377,19 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-14 pb-10">
+        {/* HUGE center logo row */}
+        <div className="flex justify-center mb-10">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/kaishiologo.png"
+            alt="Kaishio logo"
+            className="h-32 sm:h-40 md:h-52 lg:h-64 w-auto rounded-full shadow-2xl shadow-black/50 bg-white"
+          />
+        </div>
+
         <div className="relative grid gap-10 lg:grid-cols-2 lg:items-start">
           {/* LEFT COLUMN */}
           <div>
-            {/* Big, readable logo centered above the copy */}
-            <div className="flex justify-center sm:justify-start mb-6">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/brand/kaishiologo.png"
-                alt="Kaishio logo"
-                className="h-24 sm:h-28 md:h-32 w-auto rounded-full shadow-lg shadow-black/40 bg-white"
-              />
-            </div>
-
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/80">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {t.tagPill}
