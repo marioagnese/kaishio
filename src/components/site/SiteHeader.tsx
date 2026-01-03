@@ -1,15 +1,30 @@
-// src/components/site/SiteHeader.tsx
 "use client";
 
+import Link from "next/link";
 import { useLanguage, type Language } from "@/contexts/LanguageContext";
+
+const HOME_LABELS = {
+  en: "Home",
+  pt: "Início",
+  es: "Inicio",
+};
 
 export default function SiteHeader() {
   const { lang, setLang } = useLanguage();
 
   return (
     <header className="sticky top-0 z-20 border-b border-white/10 bg-black/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-end px-6 py-3">
-        {/* Language toggle only */}
+      <div className="mx-auto flex max-w-6xl items-center justify-end gap-3 px-6 py-3">
+
+        {/* HOME BUTTON */}
+        <Link
+          href="/"
+          className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white hover:bg-white/20 transition"
+        >
+          {HOME_LABELS[lang]}
+        </Link>
+
+        {/* LANGUAGE TOGGLE */}
         <div className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1 py-0.5 text-[11px] sm:text-xs">
           {(["en", "pt", "es"] as Language[]).map((code) => {
             const isCurrent = lang === code;
